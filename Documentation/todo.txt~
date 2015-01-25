@@ -1,0 +1,49 @@
+
+Testning
+v noggranhet?
+  måtten stämmer helt
+- repeterbarhet?  
+  testat fyrkant och romb, ingen avvikelse med usb+9v inkopplad. batteriberoende?
+- tappar steps konsekvent?
+- hitta gränser för arbetsområde
+v mät strömförbrukning
+  50mA idle, 250mA stepper 
+- behövs kapacitanser?
+
+Hardware
+- längre arm på servo
+  blir en del problem med vingel, kanske onödigt
+- minskad radie på rullar?
+- penna under rotationscentrum
+- bättre vippstöd
+  skruvar funkade uselt med nuvarande tyngdpunkt
+v snöre med öglor och 1m markering
+- större vinkel på snöre, justerbar?
+- sugproppfästen med snöre intill tavlan, hur?
+- lysdiod/beeper för feedback?
+- bättre tyngdpunkt
+- lättare komma åt elektroniken
+- snygga korta sladdar
+- större hål för pennan
+- klack att haka gummishodd till penna i
+- spänningsvarning?
+- tappar steps? HW/SW?
+- mindre flex i plattan
+- få distanserna två lager tjocka?
+- färdigt hål i rullar, och något att fästa tråd i
+
+
+Software
+- snabbare in/utrullning av tråd
+v nollställ startpunkt med en knapp
+v kom ihåg positionering vid manuell navigation
+- manuella kontroller för penna
+- fler program?
+- valbar hastighet?
+- Ladda upp design över ir?
+- variabel disparity, alternativ kalibreringsprocedur
+- acceleration
+- spara position i flash
+- pausfunktion, möjligggör batteribyte?
+v kör till origo på slutet av plot
+- flerfärg
