@@ -1,6 +1,6 @@
 #include <IRremote.h>
 
-int RECV_PIN = 12;
+int RECV_PIN = 1;
 IRrecv irrecv(RECV_PIN);
 decode_results results;  
 
@@ -54,9 +54,9 @@ void readIR()
          currentPlot = 1;
          break;
        case 0xf50ac53a:  //3
-         printSize = 0.15;
+         printSize = 1;
          program = 1; //start print
-         currentPlot = 1;
+         currentPlot = 3;
          break;
        case 0xF50A25DA:  //4
          printSize = 0.5;

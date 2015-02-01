@@ -36,8 +36,8 @@ static int currentSubSegment = 0;
 void setup()
 {
   //Initialize serial and wait for port to open:
-  Serial.begin(9600); 
-  Serial.println("Yo! debug at your service!"); 
+//  Serial.begin(9600); 
+//  Serial.println("Yo! debug at your service!"); 
 
   //initialize IR  
   setupIR();
@@ -47,6 +47,9 @@ void setup()
 
   //initialize servo
   setupServo();
+  
+  //initialize SD card
+  setupData();
 }
 
 
@@ -62,6 +65,8 @@ void setOrigo() {
 
 void loop()
 {        
+    int tmpX, tmpY, tmpPen;
+    
     readIR(); 
 
     if(program == 0) {
@@ -82,18 +87,15 @@ void loop()
       if(manualPenUp) {
          movePen(false);
          manualPenUp = 0;
-      }      
+      }            
     }
-    else {
-      if(state == getDataLength(currentPlot)) {
+    else { 
+      if(!getData(currentPlot, state, &tmpX, &tmpY, &tmpPen)) {
         //reached the end, go back to manual mode
         state = 0;
         program = 0;        
       }
       else {      
-        int tmpX, tmpY, tmpPen;
-        getData(currentPlot, state, &tmpX, &tmpY, &tmpPen);
-              
         float nextX = tmpX*printSize;
         float nextY = tmpY*printSize;
         boolean nextPen = tmpPen > 0;

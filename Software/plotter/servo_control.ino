@@ -2,14 +2,17 @@
 
 Servo myservo;
 
-#define UP 110
+#define UP 100
 #define DOWN 20
+
+#define SERVO_PIN 0
+
 static int oldPos = 0;
 
 
 void setupServo() 
 {
-  myservo.attach(13);  // attaches the servo on pin 9 to the servo object 
+  myservo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object 
   movePen(false);  
 }
 

@@ -4,8 +4,8 @@ long currRightPos = 0;
 
 byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
 
-byte leftPins[4] = {4,5,6,7};
-byte rightPins[4] = {8,9,10,11};
+byte leftPins[4] = {6,7,8,9};
+byte rightPins[4] = {2,3,4,5};
 
 #define MIN_DELAY 1220
 #define MAX_DELAY 20000
@@ -42,13 +42,13 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
      float leftFraction = 0;
      float rightFraction = 0;
     
-     Serial.print("numsteps=");
+/*     Serial.print("numsteps=");
      Serial.println(numSteps);     
      Serial.print("dL=");
      Serial.println(leftPerStep);     
      Serial.print("dR=");
      Serial.println(rightPerStep);     
-    
+  */  
      while(abs(leftSteps) > 0 || abs(rightSteps) > 0) {
        leftFraction += leftPerStep;
        if(leftFraction >= 1.0) { //step left
