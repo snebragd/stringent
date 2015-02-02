@@ -12,6 +12,8 @@
 //longest allowed line segment before splitting
 #define maxSegmentLength 2 
 
+#define SERIAL_DEBUG 0
+
 int state=0;
 int currentPlot = 0;
 
@@ -35,10 +37,12 @@ static int currentSubSegment = 0;
 
 void setup()
 {
+  if(SERIAL_DEBUG) {
   //Initialize serial and wait for port to open:
-//  Serial.begin(9600); 
-//  Serial.println("Yo! debug at your service!"); 
-
+    Serial.begin(9600); 
+    Serial.println("Yo! debug at your service!"); 
+  }
+  
   //initialize IR  
   setupIR();
 
@@ -65,9 +69,16 @@ void setOrigo() {
 
 void loop()
 {        
-    int tmpX, tmpY, tmpPen;
+    float tmpX, tmpY;
+    int tmpPen;
     
     readIR(); 
+
+  if(SERIAL_DEBUG) {
+   printSize = 1;
+   program = 1; //start print
+   currentPlot = 3; 
+  }
 
     if(program == 0) {
       float left = (manualLeft/spoolCirc) * 360.0;    
@@ -139,12 +150,9 @@ void loop()
         if(advancePoint) {
           state = state+1; //next point
           prevX = nextX;
-          prevY = nextY;
+          prevY = nextY;                   
         }
-        
-        //start by moving pen before setting up steppers
-        movePen(nextPen);
-        
+                
         float xL = nextX+centerX;
         float xR = nextX+centerX-disparity;
         float y = nextY+centerY;
@@ -158,18 +166,13 @@ void loop()
         currentLeftSteps = newLeft;
         currentRightSteps = newRight;
 
-        step(dLeft, dRight, aStart, aStop);
-
-/*        float newLeft = sqrt(xL*xL + y*y);  
-        float newRight = sqrt(xR*xR + y*y);  
-
-        float dLeft = (newLeft-currentLeft);            
-        float dRight = (newRight-currentRight);
-             
-        currentLeft = newLeft;
-        currentRight = newRight;
-                
-        step(dLeft*stepsPerMM, dRight*stepsPerMM, aStart, aStop);*/
+        if(((dLeft == 0) && (dRight == 0)) || SERIAL_DEBUG) {
+          //no move, ignore
+        }
+        else {
+          movePen(nextPen); //adjust pen as necessary  
+          step(dLeft, dRight, aStart, aStop); //move steppers
+        }
       }      
   } 
 }

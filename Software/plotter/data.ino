@@ -45,10 +45,11 @@ prog_int16_t* penArray[] = {penArray1, penArray2, penArray3};
 
 static int currentlySelectedPlot = -1;
 static File targaFile;
+static int targaFilePass = 0;
 static File dxfFile;
 
-bool getData(int plotNo, int point, int *x, int* y, int* pen)
-{
+bool getData(int plotNo, int point, float *x, float* y, int* pen)
+{  
   if(currentlySelectedPlot != plotNo) {
     //first call, check if we have plot stored on SD
     
@@ -67,6 +68,7 @@ bool getData(int plotNo, int point, int *x, int* y, int* pen)
 
     if(targaFile) {
       //found targa bitmap
+      targaFilePass = 0;
 //      Serial.println("found targa bitmap"); 
     }
     else {
@@ -88,7 +90,11 @@ bool getData(int plotNo, int point, int *x, int* y, int* pen)
     return false;
   }
   else {
-    return getMemoryData(plotNo, point, x, y, pen);
+    int intX, intY;
+    bool ret = getMemoryData(plotNo, point, &intX, &intY, pen);
+    *x = (float)intX;
+    *y = (float)intY;
+    return ret;
   }
 }
 
@@ -122,27 +128,42 @@ void setupData()
 #define READ_WORD(f) ((f).read() | ((f).read() << 8))
 #define SKIP_BYTES(f,num) for(int __i=0; __i<num ; __i++) {(f).read();}
 
-#define PIXEL_SIZE_MM 5
+#define PIXEL_SIZE_MM 3
 
 static int targaWidth;
 static int targaHeight;
+static float R, G, B, C, M, Y, K;
+static float pixelFill;
+static int lastReadPoint = -1;
 
-bool getTargaData(int plotNo, int point, int *x, int* y, int* pen)
+bool getTargaData(int plotNo, int point, float *x, float* y, int* pen)
 {
-  int r, g, b;
-  float R, G, B, C, M, Y, K;
+char cmap[] = {' ','.',',','o','O','Q','G','#'};
 
   if(point == 0) {
     //first read, get dimensions and skip ahead to data section
     SKIP_BYTES(targaFile,12);
     targaWidth = READ_WORD(targaFile);
     targaHeight = READ_WORD(targaFile);    
-    SKIP_BYTES(targaFile,2);       
+    SKIP_BYTES(targaFile,2);  
+
+    if(SERIAL_DEBUG) {
+      Serial.print(targaWidth);    
+      Serial.print('x');    
+      Serial.println(targaHeight);
+    }    
   }
    
-  if(point/2 >= targaWidth*targaHeight) {
+  if((point/2) >= (targaWidth*targaHeight)) {    
+    if(SERIAL_DEBUG) {
+      Serial.println("Done with print");
+      delay(10000);    
+    }   
+
+    targaFilePass++; //next color if we print again!
+
     // rewind the file:
-    targaFile.seek(0);
+    targaFile.seek(0);    
     return false; //done
   } 
  
@@ -157,21 +178,40 @@ bool getTargaData(int plotNo, int point, int *x, int* y, int* pen)
     *pen = 0;    
   }
   else {
-    //read color from file and draw proportional line in pixel
-    B = targaFile.read()/255.0;
-    G = targaFile.read()/255.0;
-    R = targaFile.read()/255.0;       
+    if(point != lastReadPoint) {
+      lastReadPoint = point;
+      //read color from file and draw proportional line in pixel
+      B = targaFile.read()/255.0;
+      G = targaFile.read()/255.0;
+      R = targaFile.read()/255.0;       
     
-    K = 1-max(R, max(G, B));
-    C = ((1-R-K)) / (1-K);
-    M = ((1-G-K)) / (1-K);
-    Y = ((1-B-K)) / (1-K);
+      K = 1-max(R, max(G, B));
+      C = (1-R-K) / (1-K);
+      M = (1-G-K) / (1-K);
+      Y = (1-B-K) / (1-K);
+        
+     switch(targaFilePass) {
+       case 1:  pixelFill = C; break;      
+       case 2:  pixelFill = M; break;      
+       case 3:  pixelFill = Y; break;      
+       default: pixelFill = K; break; //0, Print in KCMY order
+     }     
+      if(SERIAL_DEBUG) {
+        if(col == 0) {
+          Serial.print('\n');
+          Serial.print(row);
+          Serial.print(' ');
+        }
+        Serial.print(cmap[(int)(pixelFill*7)]);
+      }        
+   }
+
+  
     
-    float f = K;       
-            
-    *x = (col-(targaWidth/2))*PIXEL_SIZE_MM + (f*PIXEL_SIZE_MM);
-    *y = (row-(targaHeight/2))*PIXEL_SIZE_MM + (f*PIXEL_SIZE_MM);
-    *pen = 1;        
+   *x = (col-(targaWidth/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
+   *y = (row-(targaHeight/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
+   *pen = 1;        
   }
+  return true;
 }
 
