@@ -2,6 +2,9 @@
 #include <SPI.h>
 #include <SD.h>
 
+//skip targa to preserve program memory
+//#define ENABLE_TARGA
+
 //square 100mm
 int nStates1 = 6;
 PROGMEM prog_int16_t xArray1[] = {-50, 50, 50, -50, -50, 0};
@@ -138,7 +141,8 @@ static int lastReadPoint = -1;
 
 bool getTargaData(int plotNo, int point, float *x, float* y, int* pen)
 {
-char cmap[] = {' ','.',',','o','O','Q','G','#'};
+#ifdef ENABLE_TARGA
+  char cmap[] = {' ','.',',','o','O','Q','G','#'};
 
   if(point == 0) {
     //first read, get dimensions and skip ahead to data section
@@ -147,19 +151,18 @@ char cmap[] = {' ','.',',','o','O','Q','G','#'};
     targaHeight = READ_WORD(targaFile);    
     SKIP_BYTES(targaFile,2);  
 
-    if(SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
       Serial.print(targaWidth);    
       Serial.print('x');    
       Serial.println(targaHeight);
-    }    
+#endif
   }
    
   if((point/2) >= (targaWidth*targaHeight)) {    
-    if(SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
       Serial.println("Done with print");
       delay(10000);    
-    }   
-
+#endif
     targaFilePass++; //next color if we print again!
 
     // rewind the file:
@@ -196,22 +199,23 @@ char cmap[] = {' ','.',',','o','O','Q','G','#'};
        case 3:  pixelFill = Y; break;      
        default: pixelFill = K; break; //0, Print in KCMY order
      }     
-      if(SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
         if(col == 0) {
           Serial.print('\n');
           Serial.print(row);
           Serial.print(' ');
         }
         Serial.print(cmap[(int)(pixelFill*7)]);
-      }        
-   }
-
-  
+#endif
+    }  
     
    *x = (col-(targaWidth/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
    *y = (row-(targaHeight/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
    *pen = 1;        
   }
   return true;
+#else //ENABLE_TARGA
+  return false;
+#endif
 }
 

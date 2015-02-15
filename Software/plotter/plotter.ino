@@ -12,23 +12,30 @@
 //longest allowed line segment before splitting
 #define maxSegmentLength 2 
 
-#define SERIAL_DEBUG 0
+//using serial debug will interfere with IR and Servo that are using pin 0 and 1 (TX/RX)
+//#define SERIAL_DEBUG
+
+#define EEPROM_LEFT_ADDR 0
+#define EEPROM_RIGHT_ADDR 4
+#define EEPROM_DISPARITY_ADDR 8
 
 int state=0;
 int currentPlot = 0;
 
-float disparity = 1000;  //distance between anchor points 
+long disparity = 1000;  //distance between anchor points 
 long currentLeftSteps  = 1000*stepsPerMM; 
 long currentRightSteps = 1000*stepsPerMM;
 float centerX = 500; //starting x pos
 float centerY = 866; //starting x pos
+
+bool stopPressed = false;
 
 int program = 0; //0 is start program, responding to IR 
 
 //manual control
 int manualLeft = 0, manualRight = 0, manualPenDown = 0, manualPenUp = 0;
 float printSize = 1.0;
-int speedMult = 15;
+bool continousManualDrive = false;
 
 //book keeping for sub segmenting lines
 static float prevX = 0;
@@ -37,11 +44,11 @@ static int currentSubSegment = 0;
 
 void setup()
 {
-  if(SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
   //Initialize serial and wait for port to open:
     Serial.begin(9600); 
-    Serial.println("Yo! debug at your service!"); 
-  }
+    Serial.println("Yo! debug at your service!");
+#endif
   
   //initialize IR  
   setupIR();
@@ -54,8 +61,19 @@ void setup()
   
   //initialize SD card
   setupData();
+  
+  //read stored position from EEPROM
+  currentLeftSteps = eepromReadLong(EEPROM_LEFT_ADDR);  
+  currentRightSteps = eepromReadLong(EEPROM_RIGHT_ADDR);  
+  disparity = eepromReadLong(EEPROM_DISPARITY_ADDR);  
+  setOrigo();
 }
 
+void storePositionInEEPROM() {
+  eepromWriteLong(EEPROM_LEFT_ADDR, currentLeftSteps);  
+  eepromWriteLong(EEPROM_RIGHT_ADDR, currentRightSteps);  
+  eepromWriteLong(EEPROM_DISPARITY_ADDR, disparity);  
+}
 
 void setOrigo() {
     float currentLeft  = currentLeftSteps / stepsPerMM;
@@ -74,11 +92,11 @@ void loop()
     
     readIR(); 
 
-  if(SERIAL_DEBUG) {
+#ifdef SERIAL_DEBUG
    printSize = 1;
    program = 1; //start print
    currentPlot = 3; 
-  }
+#endif
 
     if(program == 0) {
       float left = (manualLeft/spoolCirc) * 360.0;    
@@ -88,9 +106,12 @@ void loop()
      
       step(manualLeft*stepsPerMM,manualRight*stepsPerMM, 0, 0);
       setOrigo();             
-            
-      manualLeft = manualRight = 0;
 
+      if(stopPressed || (!continousManualDrive)) {             
+        manualLeft = manualRight = 0;
+        stopPressed = false;
+      }
+      
       if(manualPenDown) {
          movePen(true);
          manualPenDown = 0;
@@ -101,10 +122,13 @@ void loop()
       }            
     }
     else { 
-      if(!getData(currentPlot, state, &tmpX, &tmpY, &tmpPen)) {
+      if(!getData(currentPlot, state, &tmpX, &tmpY, &tmpPen) || stopPressed) {
         //reached the end, go back to manual mode
         state = 0;
         program = 0;        
+        
+        //store current position in eeprom 
+        storePositionInEEPROM();
       }
       else {      
         float nextX = tmpX*printSize;
@@ -166,7 +190,7 @@ void loop()
         currentLeftSteps = newLeft;
         currentRightSteps = newRight;
 
-        if(((dLeft == 0) && (dRight == 0)) || SERIAL_DEBUG) {
+        if(((dLeft == 0) && (dRight == 0))) {
           //no move, ignore
         }
         else {

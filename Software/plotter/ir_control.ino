@@ -11,9 +11,11 @@ void setupIR()
 
 void readIR()
 {
+  float lDist;
+  
   if (irrecv.decode(&results)) {
-//    Serial.println(results.value, HEX);
-
+//      Serial.println(results.value, HEX);
+  
     switch(results.value) {
        case 0xF50A4FB0:  //up
          manualPenUp = 1;
@@ -22,24 +24,40 @@ void readIR()
          manualPenDown = 1;
          break;
        case 0xf50a1de2: //left -
-         manualLeft = -speedMult;
+         manualLeft = -1;
          break;
        case 0xf50aed12: //left +
-         manualLeft = speedMult;
+         manualLeft = 1;
          break;
        case 0xc53ad926: //right -
-         manualRight = -speedMult;
+         manualRight = -1;
          break;
        case 0xc53a59a6: //right +
-         manualRight = speedMult;
+         manualRight = 1;
+         break;
+       case 0xC53AB946:  //prev - calibrate 200 mm from left
+         currentLeftSteps = 200*stepsPerMM;         
+         break;
+       case 0xC53A39C6:  //next - calibrate 200 mm from right
+         currentRightSteps = 200*stepsPerMM;              
+
+         lDist = currentLeftSteps/stepsPerMM;
+         disparity = (long)sqrt(lDist*lDist+200*200);
          break;
        case 0xf50af708:  //enter
-         speedMult = 15.0;
+         continousManualDrive = true;
          break;
-       case 0xc53a7986: //play - reset center
+       case 0xf50a2df0:  //return
+         continousManualDrive = false;
+         break;
+       case 0xC53A19E6:  //stop
+         stopPressed = true;
+         break;
+       case 0xc53a7986: //play - reset center for 1m-1m-1m triangle setup
          currentLeftSteps = 1000*stepsPerMM;
-         currentRightSteps = 1000*stepsPerMM;       
-         speedMult = 1.0;
+         currentRightSteps = 1000*stepsPerMM;     
+         disparity = 1000;  
+         continousManualDrive = false;
          centerX = 500; //starting x pos
          centerY = 866; //starting x pos
          break;

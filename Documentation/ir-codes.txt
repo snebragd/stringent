@@ -12,6 +12,18 @@ F50ACF30  down
 
 C53A7986  play
 C53AF906  pause
+C53A19E6  stop
+
+C53AB946  prev
+C53A39C6  next
+
+F50AC738  display
+F50A2FD0  return
+
+F50A3DC2  power
+F50A6D92  open/close
+
+F50A7F80  random
 
 F50A857A  1
 F50A45BA  2
@@ -23,7 +35,7 @@ F50AE51A  7
 F50A15EA  8
 F50A956A  9 
 F50A05FA  0
- 
+
 
 
 
