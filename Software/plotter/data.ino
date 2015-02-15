@@ -2,8 +2,13 @@
 #include <SPI.h>
 #include <SD.h>
 
+//#define DEFAULT_PLOT_SIZE 100
+
 //skip targa to preserve program memory
 //#define ENABLE_TARGA
+
+//skip targa to preserve program memory
+#define ENABLE_SVG
 
 //square 100mm
 int nStates1 = 6;
@@ -49,7 +54,7 @@ prog_int16_t* penArray[] = {penArray1, penArray2, penArray3};
 static int currentlySelectedPlot = -1;
 static File targaFile;
 static int targaFilePass = 0;
-static File dxfFile;
+static File svgFile;
 
 bool getData(int plotNo, int point, float *x, float* y, int* pen)
 {  
@@ -60,9 +65,9 @@ bool getData(int plotNo, int point, float *x, float* y, int* pen)
       targaFile.close();
       targaFile = SD.open("dummy_fail_this_open", FILE_READ);;      
     }
-    if(dxfFile) {
-      dxfFile.close();
-      dxfFile = SD.open("dummy_fail_this_open", FILE_READ);;      
+    if(svgFile) {
+      svgFile.close();
+      svgFile = SD.open("dummy_fail_this_open", FILE_READ);;      
     }
     
     char* tgaName = "1.tga";
@@ -72,15 +77,19 @@ bool getData(int plotNo, int point, float *x, float* y, int* pen)
     if(targaFile) {
       //found targa bitmap
       targaFilePass = 0;
-//      Serial.println("found targa bitmap"); 
+#ifdef SERIAL_DEBUG
+      Serial.println("found targa bitmap"); 
+#endif
     }
     else {
-      char* dxfName = "1.dxf";
-      dxfName[0] = '0'+plotNo;    
-      dxfFile = SD.open(dxfName, FILE_READ);
-      if(dxfFile) {
-          //found autocad dxf format
-//          Serial.println("found dxf file"); 
+      char* svgName = "1.svg";
+      svgName[0] = '0'+plotNo;    
+      svgFile = SD.open(svgName, FILE_READ);
+      if(svgFile) {
+          //found autocad svg format
+#ifdef SERIAL_DEBUG
+          Serial.println("found svg file"); 
+#endif
       }
     }
     currentlySelectedPlot = plotNo;
@@ -89,8 +98,8 @@ bool getData(int plotNo, int point, float *x, float* y, int* pen)
   if(targaFile) {
     return getTargaData(plotNo, point, x, y, pen);    
   }
-  else if(dxfFile) {
-    return false;
+  else if(svgFile) {
+    return getSvgData(plotNo, point, x, y, pen);    
   }
   else {
     int intX, intY;
@@ -130,14 +139,201 @@ void setupData()
 
 #define READ_WORD(f) ((f).read() | ((f).read() << 8))
 #define SKIP_BYTES(f,num) for(int __i=0; __i<num ; __i++) {(f).read();}
+static int lastReadPoint = -1;
 
+// **************** Svg path ***************************
+bool
+seekTo(char* pattern)
+{
+  //yes, this is flawed string matching
+  char* tmp = pattern;
+
+  while(*tmp != '\0') {
+      char c = svgFile.read();
+      if(c < 0) {
+         return false;
+      }
+      if(c == *tmp) {
+        tmp++;
+      }
+      else {
+        tmp = pattern;        
+      }      
+  }
+  return true;  
+}
+
+bool
+seekToPathStart() {
+    if(!seekTo("<path")) {
+#ifdef SERIAL_DEBUG
+      Serial.println("No <path> tag");    
+#endif
+      return false;
+    }
+    
+    if(!seekTo(" d=\"")) {
+#ifdef SERIAL_DEBUG
+      Serial.println("No d=\" in path tag");    
+#endif
+      return false;
+    }
+  return true;  
+}
+
+bool
+readFloat(float* ret) {
+  char tmp[20];
+  float f=0;
+  bool pastPoint=false;
+  long div = 1;
+  
+  for(int i=0 ; i<20 ; i++) {
+    tmp[i] = svgFile.read();
+    if(tmp[i]<0) {
+      return false;
+    } 
+    else if((tmp[i] >= '0') && (tmp[i] <= '9')) {
+      f = f*10+(tmp[i]-'0');      
+      if(pastPoint) {
+         div = div*10;
+      }
+    }
+    else if(tmp[i] == '.') {
+      pastPoint=true;
+    }
+    else {
+      break;
+    }   
+  }  
+  *ret = f/div;
+  
+  return true;
+}
+
+bool
+getNextPathSegment(float *x, float *y, int *line)
+{
+  char c = svgFile.read();
+  
+  if(c == 'M') {
+    *line = 0;     
+  }
+  else if(c == 'L') {
+    *line = 1;
+  }
+  else {
+    return false;
+  }      
+  
+  if(!readFloat(x)) {
+    return false;    
+  } 
+  if(!readFloat(y)) {
+    return false;    
+  } 
+  //rewind one byte that was eaten by last float read  
+  svgFile.seek(svgFile.position()-1); 
+    
+  return true; 
+}
+
+static float min_x = 100000000.0;
+static float max_x = -100000000.0;
+static float min_y = 100000000.0;
+static float max_y = -100000000.0;
+static float scaleFactor = 1.0;
+
+static float lastX,lastY;
+static int lastPen;
+
+bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
+{
+#ifdef ENABLE_SVG  
+  if(point == 0) {
+    long pathPosition;
+    long segments = 0;
+    //first read, get dimensions
+
+    if(!seekToPathStart()) {
+#ifdef SERIAL_DEBUG
+      Serial.println("No path found in svg file!");    
+#endif
+      return false;
+    }    
+#ifdef SERIAL_DEBUG
+      Serial.println("Woho found <path> in svg file!");    
+#endif
+    pathPosition = svgFile.position();
+
+    while(true) {
+      if(getNextPathSegment(x, y, pen)) {
+        segments++;        
+        min_x = min(min_x, *x);
+        max_x = max(max_x, *x);
+        min_y = min(min_y, *y);
+        max_y = max(max_y, *y);
+      }
+      else {
+        break;
+      }
+    }
+    scaleFactor = 200.0 / max( (max_x-min_x) , (max_y-min_y) );
+    
+#ifdef SERIAL_DEBUG
+      Serial.print("Segments=");    
+      Serial.println(segments);    
+
+      Serial.print("Scale factor=");    
+      Serial.println(scaleFactor);    
+
+      Serial.print("Max_x=");    
+      Serial.println(max_x);    
+
+#endif    
+    svgFile.seek(pathPosition);    
+  }
+
+  if(point != lastReadPoint) {
+    if(getNextPathSegment(x, y, pen)) {
+      *x = (*x-min_x)*scaleFactor;   
+      *y = (*y-min_y)*scaleFactor;
+   
+      lastReadPoint = point;
+      lastX = *x;
+      lastY = *y;
+      lastPen = *pen;   
+    }
+    else {
+      // rewind the file:
+      targaFile.seek(0);    
+      
+      return false;
+    }    
+  }
+  else {
+    *x = lastX;    
+    *y = lastY;    
+    *pen = lastPen;    
+  }
+#ifdef SERIAL_DEBUG
+      Serial.print(*pen ? "L " : "M ");    
+      Serial.println(point);    
+#endif        
+
+  return true;
+#else
+  return false;
+#endif
+}
+
+// **************** Targa bitmap ***************************
 #define PIXEL_SIZE_MM 3
 
 static int targaWidth;
 static int targaHeight;
 static float R, G, B, C, M, Y, K;
 static float pixelFill;
-static int lastReadPoint = -1;
 
 bool getTargaData(int plotNo, int point, float *x, float* y, int* pen)
 {

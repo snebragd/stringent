@@ -18,10 +18,12 @@ void readIR()
   
     switch(results.value) {
        case 0xF50A4FB0:  //up
-         manualPenUp = 1;
+//         manualPenUp = 1;
+         printSize = 2;
          break;
        case 0xF50ACF30:  //down
-         manualPenDown = 1;
+//         manualPenDown = 1;
+         printSize = 0.5;
          break;
        case 0xf50a1de2: //left -
          manualLeft = -1;
@@ -62,34 +64,28 @@ void readIR()
          centerY = 866; //starting x pos
          break;
        case 0xf50a857a:  //1
-         printSize = 1; //print full size
-         program = 1; //start print
-         currentPlot = 0;
-         break;
-       case 0xf50a45ba:  //2
-         printSize = 0.5;
          program = 1; //start print
          currentPlot = 1;
          break;
+       case 0xf50a45ba:  //2
+         program = 1; //start print
+         currentPlot = 2;
+         break;
        case 0xf50ac53a:  //3
-         printSize = 1;
          program = 1; //start print
          currentPlot = 3;
          break;
        case 0xF50A25DA:  //4
-         printSize = 0.5;
          program = 1; //start print
-         currentPlot = 2;
+         currentPlot = 4;
          break;
        case 0xF50AA55A:  //5
-         printSize = 0.25;
          program = 1; //start print
-         currentPlot = 2;
+         currentPlot = 5;
          break;
        case 0xF50A659A:  //6
-         printSize = 0.125;
          program = 1; //start print
-         currentPlot = 2;
+         currentPlot = 6;
          break;
     }   
     irrecv.resume(); // Receive the next value

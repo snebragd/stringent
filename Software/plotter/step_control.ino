@@ -11,7 +11,7 @@ byte rightPins[4] = {2,3,4,5};
 #define MAX_DELAY 20000
 #define MAX_ACCEL ((MAX_DELAY-MIN_DELAY)/((maxSegmentLength/2)*stepsPerMM))
 
-float delayMicros = MIN_DELAY;
+unsigned int delayMicros = MIN_DELAY;
 
 //disable steppers after half a second of inactivity
 #define DISABLE_TIMEOUT 500000
@@ -63,10 +63,15 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
            currLeftPos--;
          }
          byte mask = stepSequence[currLeftPos & 0x7];
-         digitalWrite(leftPins[0], mask & B1000);
-         digitalWrite(leftPins[1], mask & B0100);
-         digitalWrite(leftPins[2], mask & B0010);
-         digitalWrite(leftPins[3], mask & B0001); 
+
+         for(int bit=0 ; bit<4 ; bit++) {        
+           digitalWrite(leftPins[bit], mask & (B1000 >> bit));
+         }
+         
+//         digitalWrite(leftPins[0], mask & B1000);
+//         digitalWrite(leftPins[1], mask & B0100);
+//         digitalWrite(leftPins[2], mask & B0010);
+//         digitalWrite(leftPins[3], mask & B0001); 
          lastStepChange = micros();
        }
        rightFraction += rightPerStep;
@@ -81,10 +86,15 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
            currRightPos--;
          }
          byte mask = stepSequence[currRightPos & 0x7];
-         digitalWrite(rightPins[0], mask & B1000);
-         digitalWrite(rightPins[1], mask & B0100);
-         digitalWrite(rightPins[2], mask & B0010);
-         digitalWrite(rightPins[3], mask & B0001); 
+         
+         for(int bit=0 ; bit<4 ; bit++) {        
+           digitalWrite(rightPins[bit], mask & (B1000 >> bit));
+         }
+         
+//         digitalWrite(rightPins[0], mask & B1000);
+//         digitalWrite(rightPins[1], mask & B0100);
+//         digitalWrite(rightPins[2], mask & B0010);
+//         digitalWrite(rightPins[3], mask & B0001); 
          lastStepChange = micros();
        } 
      

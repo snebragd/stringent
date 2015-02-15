@@ -67,6 +67,15 @@ void setup()
   currentRightSteps = eepromReadLong(EEPROM_RIGHT_ADDR);  
   disparity = eepromReadLong(EEPROM_DISPARITY_ADDR);  
   setOrigo();
+  
+  
+#ifdef SERIAL_DEBUG
+   //fake start a print since we dont have IR control
+   printSize = 1;
+   program = 1; //start print
+   currentPlot = 1; 
+#endif
+  
 }
 
 void storePositionInEEPROM() {
@@ -91,12 +100,6 @@ void loop()
     int tmpPen;
     
     readIR(); 
-
-#ifdef SERIAL_DEBUG
-   printSize = 1;
-   program = 1; //start print
-   currentPlot = 3; 
-#endif
 
     if(program == 0) {
       float left = (manualLeft/spoolCirc) * 360.0;    
@@ -194,8 +197,10 @@ void loop()
           //no move, ignore
         }
         else {
+#ifndef SERIAL_DEBUG
           movePen(nextPen); //adjust pen as necessary  
           step(dLeft, dRight, aStart, aStop); //move steppers
+#endif          
         }
       }      
   } 
