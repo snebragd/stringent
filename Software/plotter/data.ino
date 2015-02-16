@@ -5,9 +5,6 @@
 //#define DEFAULT_PLOT_SIZE 100
 
 //skip targa to preserve program memory
-//#define ENABLE_TARGA
-
-//skip targa to preserve program memory
 #define ENABLE_SVG
 
 //square 100mm
@@ -52,56 +49,62 @@ prog_int16_t* yArray[] = {yArray1, yArray2, yArray3};
 prog_int16_t* penArray[] = {penArray1, penArray2, penArray3};
 
 static int currentlySelectedPlot = -1;
-static File targaFile;
-static int targaFilePass = 0;
+
+#ifdef ENABLE_SVG  
 static File svgFile;
+#endif
+
+static int reachedTheEndAt = -10;
 
 bool getData(int plotNo, int point, float *x, float* y, int* pen)
+{
+  if(point == (reachedTheEndAt+1)) {
+    reachedTheEndAt = -10; 
+    return false;
+  }
+  else {
+    if(!getDataInternal(plotNo, point, x, y, pen)) {
+      //return to origo on end
+      *x = *y = 0.0;
+      *pen = 0;
+      reachedTheEndAt = point; 
+    }    
+    return true;
+  }
+}
+
+bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
 {  
   if(currentlySelectedPlot != plotNo) {
     //first call, check if we have plot stored on SD
     
-    if(targaFile) {
-      targaFile.close();
-      targaFile = SD.open("dummy_fail_this_open", FILE_READ);;      
-    }
+#ifdef ENABLE_SVG      
     if(svgFile) {
       svgFile.close();
       svgFile = SD.open("dummy_fail_this_open", FILE_READ);;      
     }
     
-    char* tgaName = "1.tga";
-    tgaName[0] = '0'+plotNo;    
-    targaFile = SD.open(tgaName, FILE_READ);
+    char* svgName = "1.svg";
+    svgName[0] = '0'+plotNo;    
+    svgFile = SD.open(svgName, FILE_READ);
+    if(svgFile) {
+        //found autocad svg format
+#ifdef SERIAL_DEBUG
+        Serial.println("found svg file"); 
+#endif
+    }
+#endif //ENABLE_SVG
 
-    if(targaFile) {
-      //found targa bitmap
-      targaFilePass = 0;
-#ifdef SERIAL_DEBUG
-      Serial.println("found targa bitmap"); 
-#endif
-    }
-    else {
-      char* svgName = "1.svg";
-      svgName[0] = '0'+plotNo;    
-      svgFile = SD.open(svgName, FILE_READ);
-      if(svgFile) {
-          //found autocad svg format
-#ifdef SERIAL_DEBUG
-          Serial.println("found svg file"); 
-#endif
-      }
-    }
     currentlySelectedPlot = plotNo;
   }
   
-  if(targaFile) {
-    return getTargaData(plotNo, point, x, y, pen);    
-  }
-  else if(svgFile) {
+#ifdef ENABLE_SVG  
+  if(svgFile) {
     return getSvgData(plotNo, point, x, y, pen);    
   }
-  else {
+  else
+#endif //ENABLE_SVG  
+  {
     int intX, intY;
     bool ret = getMemoryData(plotNo, point, &intX, &intY, pen);
     *x = (float)intX;
@@ -137,11 +140,13 @@ void setupData()
   }  
 }
 
+// **************** Svg path ***************************
+#ifdef ENABLE_SVG  
+
 #define READ_WORD(f) ((f).read() | ((f).read() << 8))
 #define SKIP_BYTES(f,num) for(int __i=0; __i<num ; __i++) {(f).read();}
 static int lastReadPoint = -1;
 
-// **************** Svg path ***************************
 bool
 seekTo(char* pattern)
 {
@@ -249,7 +254,6 @@ static int lastPen;
 
 bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
 {
-#ifdef ENABLE_SVG  
   if(point == 0) {
     long pathPosition;
     long segments = 0;
@@ -306,7 +310,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
     }
     else {
       // rewind the file:
-      targaFile.seek(0);    
+      svgFile.seek(0);    
       
       return false;
     }    
@@ -322,96 +326,6 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
 #endif        
 
   return true;
-#else
-  return false;
-#endif
 }
-
-// **************** Targa bitmap ***************************
-#define PIXEL_SIZE_MM 3
-
-static int targaWidth;
-static int targaHeight;
-static float R, G, B, C, M, Y, K;
-static float pixelFill;
-
-bool getTargaData(int plotNo, int point, float *x, float* y, int* pen)
-{
-#ifdef ENABLE_TARGA
-  char cmap[] = {' ','.',',','o','O','Q','G','#'};
-
-  if(point == 0) {
-    //first read, get dimensions and skip ahead to data section
-    SKIP_BYTES(targaFile,12);
-    targaWidth = READ_WORD(targaFile);
-    targaHeight = READ_WORD(targaFile);    
-    SKIP_BYTES(targaFile,2);  
-
-#ifdef SERIAL_DEBUG
-      Serial.print(targaWidth);    
-      Serial.print('x');    
-      Serial.println(targaHeight);
-#endif
-  }
-   
-  if((point/2) >= (targaWidth*targaHeight)) {    
-#ifdef SERIAL_DEBUG
-      Serial.println("Done with print");
-      delay(10000);    
-#endif
-    targaFilePass++; //next color if we print again!
-
-    // rewind the file:
-    targaFile.seek(0);    
-    return false; //done
-  } 
- 
-  
-  int row = (point/2) / targaWidth;
-  int col = (point/2) % targaWidth;
-  
-  if((point & 1) == 0) {
-    //move to pixel
-    *x = (col-(targaWidth/2))*PIXEL_SIZE_MM;
-    *y = (row-(targaHeight/2))*PIXEL_SIZE_MM;
-    *pen = 0;    
-  }
-  else {
-    if(point != lastReadPoint) {
-      lastReadPoint = point;
-      //read color from file and draw proportional line in pixel
-      B = targaFile.read()/255.0;
-      G = targaFile.read()/255.0;
-      R = targaFile.read()/255.0;       
-    
-      K = 1-max(R, max(G, B));
-      C = (1-R-K) / (1-K);
-      M = (1-G-K) / (1-K);
-      Y = (1-B-K) / (1-K);
-        
-     switch(targaFilePass) {
-       case 1:  pixelFill = C; break;      
-       case 2:  pixelFill = M; break;      
-       case 3:  pixelFill = Y; break;      
-       default: pixelFill = K; break; //0, Print in KCMY order
-     }     
-#ifdef SERIAL_DEBUG
-        if(col == 0) {
-          Serial.print('\n');
-          Serial.print(row);
-          Serial.print(' ');
-        }
-        Serial.print(cmap[(int)(pixelFill*7)]);
-#endif
-    }  
-    
-   *x = (col-(targaWidth/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
-   *y = (row-(targaHeight/2))*PIXEL_SIZE_MM + (pixelFill*PIXEL_SIZE_MM);
-   *pen = 1;        
-  }
-  return true;
-#else //ENABLE_TARGA
-  return false;
-#endif
-}
+#endif //ENABLE_SVG
 

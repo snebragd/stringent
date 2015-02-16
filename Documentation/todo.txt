@@ -8,24 +8,20 @@ v noggranhet?
 - hitta gränser för arbetsområde
 v mät strömförbrukning
   50mA idle, 250mA stepper 
-- behövs kapacitanser?
+v behövs kapacitanser?
+  nej, verkar funka fint
 
 Hardware
-- längre arm på servo
-  blir en del problem med vingel, kanske onödigt
-  lite längre på nya, funkar?
+v längre arm på servo
 v minskad radie på rullar?
 v penna under rotationscentrum
-- bättre vippstöd
-  skruvar funkade uselt med nuvarande tyngdpunkt
+v bättre vippstöd, skruvar funkade uselt med nuvarande tyngdpunkt. Fixat med motorerna uppe
 v snöre med öglor och 1m markering
-- större vinkel på snöre, justerbar?
-- sugproppfästen med snöre intill tavlan, hur?
-- lysdiod/beeper för feedback?
-- bättre tyngdpunkt
+v större vinkel på snöre, justerbar?
+v sugproppfästen med snöre intill tavlan, hur?
+v bättre tyngdpunkt
 v lättare komma åt elektroniken
-v snygga korta sladdar
-  halvsnygga i alla fall
+v snygga korta sladdar, halvsnygga i alla fall
 v större hål för pennan
 - klack att haka gummishodd till penna i
 - spänningsvarning?
@@ -33,7 +29,9 @@ v större hål för pennan
 v mindre flex i plattan
 v få distanserna två lager tjocka?
 v färdigt hål i rullar, och något att fästa tråd i
-- SD kort
+v SD kort
+- tråd hakar i servofästet, fixa
+- lysdiod/beeper för feedback? Göra ljud med servot?
 
 Software
 - snabbare in/utrullning av tråd
@@ -42,11 +40,18 @@ v kom ihåg positionering vid manuell navigation
 - manuella kontroller för penna
 - fler program?
 - valbar hastighet?
-- Ladda upp design över ir?
-- variabel disparity, alternativ kalibreringsprocedur
+v variabel disparity, alternativ kalibreringsprocedur
 v acceleration
-- spara position i flash
+v spara position i flash
 - pausfunktion, möjligggör batteribyte?
 v kör till origo på slutet av plot
-- flerfärg
-- design på SD kort?
+v flerfärg 
+v design på SD kort?
+v lyft pennan och tillbaka till origo vid slut av plot
+- varför funkar inte IR när man kör cont?
+v spara till eeprom på knapptryck
+v mjukare penna upp/ner
+- banta koden för att få plats med smooth servo etc
+
+Don't do:
+- Ladda upp design över ir?

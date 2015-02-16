@@ -17,6 +17,9 @@ void readIR()
 //      Serial.println(results.value, HEX);
   
     switch(results.value) {
+       case 0xF50A3DC2:  //power
+         storePositionInEEPROM();         
+         break;
        case 0xF50A4FB0:  //up
 //         manualPenUp = 1;
          printSize = 2;
