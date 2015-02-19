@@ -10,7 +10,7 @@
 #define stepsPerMM (stepsPerRotation/spoolCirc)
 
 //longest allowed line segment before splitting
-#define maxSegmentLength 2 
+#define maxSegmentLength 5 
 
 //using serial debug will interfere with IR and Servo that are using pin 0 and 1 (TX/RX)
 //#define SERIAL_DEBUG
@@ -33,7 +33,7 @@ bool stopPressed = false;
 int program = 0; //0 is start program, responding to IR 
 
 //manual control
-int manualLeft = 0, manualRight = 0, manualPenDown = 0, manualPenUp = 0;
+int manualLeft = 0, manualRight = 0;
 float printSize = 1.0;
 bool continousManualDrive = false;
 
@@ -94,6 +94,8 @@ void setOrigo() {
     centerY = currentLeft*sin(a);
 }
 
+static int prevPen=0;
+
 void loop()
 {        
     float tmpX, tmpY;
@@ -107,28 +109,21 @@ void loop()
       currentLeftSteps += manualLeft*stepsPerMM;
       currentRightSteps += manualRight*stepsPerMM;
      
-      step(manualLeft*stepsPerMM,manualRight*stepsPerMM, 0, 0);
+      step(manualLeft*stepsPerMM,manualRight*stepsPerMM);
       setOrigo();             
 
       if(stopPressed || (!continousManualDrive)) {             
         manualLeft = manualRight = 0;
         stopPressed = false;
-      }
-      
-      if(manualPenDown) {
-         movePen(true);
-         manualPenDown = 0;
-      }
-      if(manualPenUp) {
-         movePen(false);
-         manualPenUp = 0;
-      }            
+      }      
     }
     else { 
       if(!getData(currentPlot, state, &tmpX, &tmpY, &tmpPen) || stopPressed) {
         //reached the end, go back to manual mode
         state = 0;
         program = 0;        
+
+        step(0, 0); //flush out last line segment
         
         //store current position in eeprom 
         storePositionInEEPROM();
@@ -137,10 +132,6 @@ void loop()
         float nextX = tmpX*printSize;
         float nextY = tmpY*printSize;
         boolean nextPen = tmpPen > 0;
-
-        float aStart = 1.0;
-        float aStop = 1.0;
-
         boolean advancePoint = true;
 
         if(state > 0) { //don't try to split first          
@@ -154,7 +145,6 @@ void loop()
               if(currentSubSegment == subSegments) {
                   //last segment
                   currentSubSegment = 0; //reset                                                                        
-                  aStart = 0; //keep speed from previous segment
               }
               else {
                   advancePoint = false; //stay on same point        
@@ -162,14 +152,6 @@ void loop()
                   
                   nextX = prevX + dx*currentSubSegment/subSegments;
                   nextY = prevY + dy*currentSubSegment/subSegments;
-                  
-                  if(currentSubSegment == 1) {
-                    aStop = 0; //don't break
-                  }
-                  else if(currentSubSegment < subSegments) {
-                    aStart = 0;
-                    aStop = 0;
-                  }
               }
           }
         }
@@ -198,8 +180,9 @@ void loop()
         }
         else {
 #ifndef SERIAL_DEBUG
-          movePen(nextPen); //adjust pen as necessary  
-          step(dLeft, dRight, aStart, aStop); //move steppers
+          movePen(prevPen); //adjust pen as necessary  
+          step(dLeft, dRight); //move steppers
+          prevPen=nextPen;
 #endif          
         }
       }      

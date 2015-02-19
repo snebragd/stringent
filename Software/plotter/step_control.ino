@@ -25,14 +25,58 @@ void setupStep()
     }
 }
 
-void step(long leftSteps, long rightSteps, float accStart, float accStop)
+static float prevDir;
+static long leftSteps=0;
+static long rightSteps=0;
+static bool accStop=true; //did we break the last segment
+
+#define ACC_DIR_THRESHOLD (3.14/4)
+#define DIR_CHANGE_WAIT 1000
+
+void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 {
+  if(*fraction >= 1.0) { //step
+     *fraction -= 1.0;        
+
+     if(*steps > 0) {
+       *steps--;
+       *currPos++;
+     }
+     else if(*steps < 0) {
+       *steps++;
+       *currPos--;
+     }
+     byte mask = stepSequence[*currPos & 0x7];
+
+     for(int bit=0 ; bit<4 ; bit++) {        
+       digitalWrite(pins[bit], mask & (B1000 >> bit));
+     }
+     
+     lastStepChange = micros();
+   }
+}
+
+void step(long nextLeftSteps, long nextRightSteps)
+{
+  bool accStart=accStop; //only accellerate if we breaked the previous segment
+  accStop = false;
+  
   long numSteps = max(abs(leftSteps), abs(rightSteps));
   long startBreakingAt = numSteps;
 
+  float nextDir = atan2(nextLeftSteps,nextRightSteps);  
+  if(abs(nextDir-prevDir) > ACC_DIR_THRESHOLD) {
+    //sharp turn, break
+    accStop = true;
+//    for(int i=0; i<DIR_CHANGE_WAIT ; i++) {
+//      delayMicroseconds(1000); 
+//    }
+  } 
+  prevDir = nextDir;  
+  
   delayMicros = (accStart > 0) ? MAX_DELAY : MIN_DELAY;
 
-  if(accStop > 0) {    
+  if(accStop) {    
     startBreakingAt = numSteps-(MAX_DELAY-MIN_DELAY)/MAX_ACCEL;    
   }
   
@@ -42,15 +86,11 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
      float leftFraction = 0;
      float rightFraction = 0;
     
-/*     Serial.print("numsteps=");
-     Serial.println(numSteps);     
-     Serial.print("dL=");
-     Serial.println(leftPerStep);     
-     Serial.print("dR=");
-     Serial.println(rightPerStep);     
-  */  
      while(abs(leftSteps) > 0 || abs(rightSteps) > 0) {
+
        leftFraction += leftPerStep;
+//       stepWithFraction(&leftFraction, &leftSteps, &currLeftPos, leftPins);
+
        if(leftFraction >= 1.0) { //step left
          leftFraction -= 1.0;        
 
@@ -68,13 +108,11 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
            digitalWrite(leftPins[bit], mask & (B1000 >> bit));
          }
          
-//         digitalWrite(leftPins[0], mask & B1000);
-//         digitalWrite(leftPins[1], mask & B0100);
-//         digitalWrite(leftPins[2], mask & B0010);
-//         digitalWrite(leftPins[3], mask & B0001); 
          lastStepChange = micros();
-       }
+       } 
        rightFraction += rightPerStep;
+//       stepWithFraction(&rightFraction, &rightSteps, &currRightPos, rightPins);
+       
        if(rightFraction >= 1.0) { //step right
          rightFraction -= 1.0;        
          if(rightSteps > 0) {
@@ -91,17 +129,13 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
            digitalWrite(rightPins[bit], mask & (B1000 >> bit));
          }
          
-//         digitalWrite(rightPins[0], mask & B1000);
-//         digitalWrite(rightPins[1], mask & B0100);
-//         digitalWrite(rightPins[2], mask & B0010);
-//         digitalWrite(rightPins[3], mask & B0001); 
          lastStepChange = micros();
-       } 
+       }  
      
-      if(accStop > 0 && startBreakingAt <= 0) {    
+      if(accStop && startBreakingAt <= 0) {    
         delayMicros = min(delayMicros+MAX_ACCEL, MAX_DELAY);
       }      
-      else if(accStart > 0) {
+      else if(accStart) {
         delayMicros = max(delayMicros-MAX_ACCEL, MIN_DELAY);
       }  
       startBreakingAt--;
@@ -116,6 +150,9 @@ void step(long leftSteps, long rightSteps, float accStart, float accStop)
        digitalWrite(rightPins[pin], 0); 
      }
    }
+   
+   leftSteps = nextLeftSteps;
+   rightSteps = nextRightSteps;
 }
 
 void getCurrentPosition(int* left, int* right)
