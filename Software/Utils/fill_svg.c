@@ -81,8 +81,9 @@ readFloat(float* ret) {
   float f=0;
   bool pastPoint=false;
   long div = 1;
+  int i;
   
-  for(int i=0 ; i<20 ; i++) {
+  for(i=0 ; i<20 ; i++) {
     tmp[i] = fgetc(svgFile);
     if(tmp[i]<0) {
       return false;
@@ -143,6 +144,10 @@ static int lastPen;
 static long pathPosition = -1;
 static long pathEndPosition = -1;
 
+static float max_size=200.0;
+static float fill_step=3.0;
+static float fill_angle=10;
+
 bool getSvgData(int point, float *x, float* y, int* pen)
 {
   if(point == 0) {
@@ -169,7 +174,7 @@ bool getSvgData(int point, float *x, float* y, int* pen)
         break;
       }
     }
-    scaleFactor = 200.0 / max( (max_x-min_x) , (max_y-min_y) );
+    scaleFactor = max_size / max( (max_x-min_x) , (max_y-min_y) );
     
     //    printf("Segments=%d\n", (int)segments);    
     // printf("Scale factor=%f\n", scaleFactor);    
@@ -211,33 +216,56 @@ typedef struct {
 typedef struct {
   Point p1;
   Point p2;    
+  bool flipped;
 } Line;
 
 static int
 cmpPointX(const void *a, const void *b)
 {
-  return ((Point*)a)->x > ((Point*)b)->x;
+  return ((Point*)a)->x - ((Point*)b)->x;
+}
+
+static int
+cmpPointXrev(const void *a, const void *b)
+{
+  return ((Point*)b)->x - ((Point*)a)->x;
 }
 
 static int
 cmpLineY(const void *a, const void *b)
 {
-  return ((Line*)a)->p1.y > ((Line*)b)->p1.y;
+  return ((Line*)a)->p1.y - ((Line*)b)->p1.y;
 }
 
+#define FLIP_LINE(l) { Point tmp=(l).p1; (l).p1=(l).p2; (l).p2=tmp; l.flipped=!(l).flipped; }
+
+float tmpX;
+
+#define ROT_POINT(p,a) {float tmpX=(p).x*cos(a)-(p).y*sin(a);(p).y = (p).y*cos(a)+(p).x*sin(a); (p).x=tmpX; }
+#define ROT_LINE(l,a) { ROT_POINT((l).p1,(a));ROT_POINT((l).p2,(a)); }
 
 int main(int argc, char **argv)
 {
   int point = 0;
   float x,y;
   int pen;
+  char* filename;
   
+  if(argc != 5) {
+    printf("usage: fill_svg <filename> <size mm> <fill spacing mm> <fill angle mm>\n");
+    return 1;
+  }
+  filename = argv[1];
+  max_size = atof(argv[2]);
+  fill_step = atof(argv[3]);
+  fill_angle = 2*M_PI*atof(argv[4])/360;
+
   float prevX=0, prevY=0;
   int vecsize = 100;
   Line* lines = malloc(vecsize*sizeof(Line));
   int nLines = 0;
 
-  while(getDataInternal("/home/fredrik/stringent/Designs/hello_world2.svg", point, &x, &y, &pen)) {
+  while(getDataInternal(filename, point, &x, &y, &pen)) {
     //    printf("."); fflush(stdout);
 
     if(pen > 0) {
@@ -247,11 +275,7 @@ int main(int argc, char **argv)
       }
       Point p1 = {x,y};
       Point p2 = {prevX,prevY};
-      Line l = {p1,p2};
-      if(p1.y > p2.y) {
-	l.p1 = p2;
-	l.p2 = p1;
-      }
+      Line l = {p2,p1,false};  
       lines[nLines++] = l;    
     }
 
@@ -259,48 +283,87 @@ int main(int argc, char **argv)
     prevY = y;
     point++;
   }    
-  //  printf("points=%d lines=%d\n", point, nLines);
 
-  qsort(lines, point, sizeof(Line), cmpLineY);
-
-  //  for(int i=0 ; i<point ; i++) {
-  //  printf("%f2.2\n", lines[i].p1.y);
-  //}
-
+  //output pre-path portion of svg file
   rewind(svgFile);
   while(pathPosition-- > 0) {
     putchar(fgetc(svgFile));
   }
 
+  prevX=-1;
+  prevY=-1;
+  //output outline
+  /*
   for(int i=0 ; i<nLines ; i++) {
-    printf("M%f %fL%f %f", lines[i].p1.x, lines[i].p1.y, lines[i].p2.x, lines[i].p2.y);
+    if((lines[i].p1.x == prevX) && (lines[i].p1.y == prevY)) {
+      //continue line
+      printf("L%.6f %.6f", lines[i].p2.x, lines[i].p2.y);
+      //      fprintf(stderr, "L");
+    }
+    else {
+      //move, then line
+      printf("M%.6f %.6fL%.6f %.6f", lines[i].p1.x, lines[i].p1.y, lines[i].p2.x, lines[i].p2.y);
+      //      fprintf(stderr, "ML");
+    }
+    prevX = lines[i].p2.x;
+    prevY = lines[i].p2.y;
   }
+  */
 
+  bool fwd=true;
+  //generate and output fill  
   Point* intersections = malloc(nLines*sizeof(Point));
-  for(int y=0 ; y<200 ; y+=5) {
+for(y=-max_size*1.42 ; y < max_size*1.42 ; y += fill_step) {
     int nIntersections = 0;
-    for(int l=0 ; l<nLines ; l++) {
+    int l;
+    for(l=0 ; l<nLines ; l++) {
       Line line = lines[l];
+
+      ROT_LINE(line, fill_angle);
+          
+      if(line.p1.y > line.p2.y) {
+	FLIP_LINE(line);
+      }
+
+
       if(line.p1.y <= y && line.p2.y > y) {
 	float x = line.p1.x+ (line.p2.x-line.p1.x)*((y-line.p1.y)/(line.p2.y-line.p1.y));
 	Point p = {x,y};
 	intersections[nIntersections++] = p;
       }
     }
-    //    printf("nInter=%d\n", nIntersections);
-    qsort(intersections, nIntersections, sizeof(Point), cmpPointX);
-    for(int i=0 ; i<nIntersections ; i+=2) {
-      printf("M%f %fL%f %f", intersections[i].x, intersections[i].y, intersections[i+1].x, intersections[i+1].y);
+
+    if(nIntersections%2 != 0) {
+      fprintf(stderr, "y=%2.2f ODD=%d\n", y, nIntersections);
     }
+    else {
+      int i;
+    //    printf("nInter=%d\n", nIntersections);
+      qsort(intersections, nIntersections, sizeof(Point), fwd ? cmpPointX : cmpPointXrev);
+      for(i=0 ; i<nIntersections ; i+=2) {
+	Point p1 = intersections[i];
+	Point p2 = intersections[i+1];
+	Line tmpLine = {p1,p2,false};
+	ROT_LINE(tmpLine,-fill_angle);
+//	printf("M%f %fL%f %f", intersections[i].x, intersections[i].y, intersections[i+1].x, intersections[i+1].y);
+	printf("M%f %fL%f %f", tmpLine.p1.x, tmpLine.p1.y, tmpLine.p2.x, tmpLine.p2.y);
+      }
+    }
+    fwd = !fwd;
   }
-  putchar('\"');
+  
+  printf("\"\n        style=\"stroke:#000000;fill:#ffffff\" />");
   fseek(svgFile, pathEndPosition, SEEK_SET);
   char c;
+  while((c=fgetc(svgFile)) != '>') {
+    //skip
+  }
   while((c=fgetc(svgFile)) > 0) {
     putchar(c);
   }
 
   fclose(svgFile);
   free(lines);
+
   return 0;
 }

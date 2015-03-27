@@ -10,6 +10,9 @@ v mät strömförbrukning
   50mA idle, 250mA stepper 
 v behövs kapacitanser?
   nej, verkar funka fint
+- testa godtagbara hastigheter
+  1/400 inte ok, 1/600 kanske ok
+- köra fortare vid utrullning än inrullning?
 
 Hardware
 v längre arm på servo
@@ -32,6 +35,13 @@ v färdigt hål i rullar, och något att fästa tråd i
 v SD kort
 - tråd hakar i servofästet, fixa
 - lysdiod/beeper för feedback? Göra ljud med servot?
+- avkopplingsbara rullar för manuell in/utrullning?
+v batterimätare
+- temperaturmätare
+- bättre infästning av sd-läsaren
+- Mini-variant med nano arduinon
+- två hål och två piggar för montering utan skruv?
+- ny design för shield-varianten
 
 Software
 - snabbare in/utrullning av tråd
@@ -43,7 +53,7 @@ v kom ihåg positionering vid manuell navigation
 v variabel disparity, alternativ kalibreringsprocedur
 v acceleration
 v spara position i flash
-- pausfunktion, möjligggör batteribyte?
+v pausfunktion, möjligggör batteribyte?
 v kör till origo på slutet av plot
 v flerfärg 
 v design på SD kort?
@@ -51,7 +61,20 @@ v lyft pennan och tillbaka till origo vid slut av plot
 - varför funkar inte IR när man kör cont?
 v spara till eeprom på knapptryck
 v mjukare penna upp/ner
-- banta koden för att få plats med smooth servo etc
-
+v banta koden för att få plats med smooth servo etc
+   IRremote från 11k till 4k om bara ta emot med NEC
+v paus/stop/resume funktion med state sparat i eeprom, batteribyte
+v Storlek på bild x% av avståndet mellan punkter? (möjlighet att välja ett par olika typ, 30, 60, 90%)
+- möjlighet att dra ner på hastigheten från fjärren
+v Konstig bugg där den åkte rakt ner väldigt långt?!?
+  lyckas ibland inte läsa från SD, kanske patchat så att den inte alls börjar istället nu.
+v undvik spara till eeprom flera ggr
+v strippa ir-remote libraryt
+v accel mattebug, stannar mitt i cirkelbåge?
+- hindra ritning utanför disparity
+v skalar fel om ocentrerad svg?
+v hackar i transitions mellan segments? finns segments när pennan uppe?
+- bättre acceleration
+ 
 Don't do:
 - Ladda upp design över ir?

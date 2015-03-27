@@ -1,4 +1,4 @@
-#include <IRremote.h>
+#include <IRremoteSlim.h>
 
 #define RECV_PIN  1
 IRrecv irrecv(RECV_PIN);
@@ -17,9 +17,11 @@ void readIR()
 //      Serial.println(results.value, HEX);
   
     switch(results.value) {
+#ifndef SERIAL_DEBUG      
        case 0xF50A3DC2:  //power
-         storePositionInEEPROM();         
-         break;
+         storePositionInEEPROM();
+               
+         break;         
        case 0xF50A4FB0:  //up
          printSize = 2;
          break;
@@ -46,21 +48,26 @@ void readIR()
 
          lDist = currentLeftSteps/stepsPerMM;
          disparity = (long)sqrt(lDist*lDist+200*200);
-         break;
+         break;   
+#endif         
        case 0xf50af708:  //enter
-         continousManualDrive = true;
+         continousManualDrive = false;
          break;
        case 0xf50a2df0:  //return
-         continousManualDrive = false;
+         continousManualDrive = true;
          break;
        case 0xC53A19E6:  //stop
          stopPressed = true;
          break;
-       case 0xc53a7986: //play - reset center for 1m-1m-1m triangle setup
+       case 0xc53a7986: //play
+          //resume print, or start new
+          program = 1; //start print
+          resumePlot = true;       
+//reset center for 1m-1m-1m triangle setup
 //         currentLeftSteps = 1000*stepsPerMM;
 //         currentRightSteps = 1000*stepsPerMM;     
 //         disparity = 1000;  
-         continousManualDrive = false;
+//         continousManualDrive = false;
 //         centerX = 500; //starting x pos
 //         centerY = 866; //starting x pos
          break;

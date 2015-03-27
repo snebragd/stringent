@@ -1,10 +1,15 @@
+#ifndef SERIAL_DEBUG  
+
 #include <Servo.h> 
+
+Servo myservo;
+
+#endif  
 
 //disable to preserve space
 #define USE_SMOOTH_SERVO
 #define USE_LINEAR_SERVO
 
-Servo myservo;
 
 #define UP 100
 #define DOWN 20
@@ -19,6 +24,16 @@ void setupServo()
   myservo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object 
   movePen(false);  
 #endif  
+}
+
+void makePenNoise()
+{
+  for(int i=0;i<4;i++) {
+    myservo.write((int)oldPos-5);    
+    delayMicroseconds(200000); 
+    myservo.write((int)oldPos);    
+    delayMicroseconds(200000); 
+  }  
 }
 
 void movePen(boolean down)

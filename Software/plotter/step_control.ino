@@ -4,9 +4,15 @@ long currRightPos = 0;
 
 byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
 
-byte leftPins[4] = {6,7,8,9};
-byte rightPins[4] = {2,3,4,5};
+//original order
+//byte leftPins[4] = {6,7,8,9};
+//byte rightPins[4] = {2,3,4,5};
 
+//flipped order
+byte leftPins[4] = {9,8,7,6};
+byte rightPins[4] = {5,4,3,2};
+
+//#define MIN_DELAY 600
 #define MIN_DELAY 1220
 #define MAX_DELAY 20000
 #define MAX_ACCEL ((MAX_DELAY-MIN_DELAY)/((maxSegmentLength/2)*stepsPerMM))
@@ -30,9 +36,9 @@ static long leftSteps=0;
 static long rightSteps=0;
 static bool accStop=true; //did we break the last segment
 
-#define ACC_DIR_THRESHOLD (3.14/4)
+#define ACC_DIR_THRESHOLD (PI/4)
 #define DIR_CHANGE_WAIT 1000
-
+/*
 void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 {
   if(*fraction >= 1.0) { //step
@@ -55,7 +61,7 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
      lastStepChange = micros();
    }
 }
-
+*/
 void step(long nextLeftSteps, long nextRightSteps)
 {
   bool accStart=accStop; //only accellerate if we breaked the previous segment
@@ -65,7 +71,12 @@ void step(long nextLeftSteps, long nextRightSteps)
   long startBreakingAt = numSteps;
 
   float nextDir = atan2(nextLeftSteps,nextRightSteps);  
-  if(abs(nextDir-prevDir) > ACC_DIR_THRESHOLD) {
+  float diff = abs(nextDir-prevDir);
+  if(diff > PI) {
+    diff = 2*PI-diff;
+  }
+  
+  if(diff > ACC_DIR_THRESHOLD) {
     //sharp turn, break
     accStop = true;
 //    for(int i=0; i<DIR_CHANGE_WAIT ; i++) {

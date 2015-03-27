@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="UTF-8" standalone="no"?>
+<!-- Created with Inkscape (http://www.inkscape.org/) -->
+
+<svg
+   xmlns:osb="http://www.openswatchbook.org/uri/2009/osb"
+   xmlns:dc="http://purl.org/dc/elements/1.1/"
+   xmlns:cc="http://creativecommons.org/ns#"
+   xmlns:rdf="http://www.w3.org/1999/02/22-rdf-syntax-ns#"
+   xmlns:svg="http://www.w3.org/2000/svg"
+   xmlns="http://www.w3.org/2000/svg"
+   xmlns:sodipodi="http://sodipodi.sourceforge.net/DTD/sodipodi-0.dtd"
+   xmlns:inkscape="http://www.inkscape.org/namespaces/inkscape"
+   width="744.09448819"
+   height="1052.3622047"
+   id="svg2"
+   version="1.1"
+   inkscape:version="0.48.3.1 r9886"
+   sodipodi:docname="New document 1">
+  <sodipodi:namedview
+     id="base"
+     pagecolor="#ffffff"
+     bordercolor="#666666"
+     borderopacity="1.0"
+     inkscape:pageopacity="0.0"
+     inkscape:pageshadow="2"
+     inkscape:zoom="0.35"
+     inkscape:cx="-127.85714"
+     inkscape:cy="520"
+     inkscape:document-units="px"
+     inkscape:current-layer="layer1"
+     showgrid="false"
+     inkscape:window-width="987"
+     inkscape:window-height="959"
+     inkscape:window-x="65"
+     inkscape:window-y="62"
+     inkscape:window-maximized="0" />
+  <defs
+     id="defs4">
+    <pattern
+       inkscape:collect="always"
+       patternUnits="userSpaceOnUse"
+       width="9"
+       height="1"
+       patternTransform="translate(0,0) scale(10,10)"
+       id="Strips1_8"
+       inkscape:stockid="Stripes 1:8">
+      <rect
+         style="fill:black;stroke:none"
+         x="0"
+         y="-0.5"
+         width="1"
+         height="2"
+         id="rect4516" />
+    </pattern>
+    <linearGradient
+       osb:paint="solid"
+       id="linearGradient3755">
+      <stop
+         id="stop3757"
+         offset="0"
+         style="stop-color:#000000;stop-opacity:1;" />
+    </linearGradient>
+  </defs>
+  <metadata
+     id="metadata7">
+    <rdf:RDF>
+      <cc:Work
+         rdf:about="">
+        <dc:format>image/svg+xml</dc:format>
+        <dc:type
+           rdf:resource="http://purl.org/dc/dcmitype/StillImage" />
+        <dc:title></dc:title>
+      </cc:Work>
+    </rdf:RDF>
+  </metadata>
+  <g
+     id="layer1"
+     inkscape:groupmode="layer"
+     inkscape:label="Layer 1">
+    <path
+       id="path2985"
+       d="M622.85716 530.93359L621.544311545 558.831649729L617.690978145 585.923824863L611.424977742 612.072962449L602.874128281 637.141909531L592.166247708 660.993513157L579.429153965 683.490620371L564.790664998 704.49607822L548.37859875 723.87273375L530.320773167 741.483434006L510.745006191 757.191026035L489.779115769 770.858356882L467.550919844 782.348273594L444.18823636 791.523623215L419.818883262 798.247252793L394.570678494 802.382009373L368.57144 803.79074L342.572203154 802.382009373L317.323999609 798.247252793L292.954647354 791.523623215L269.591964375 782.348273594L247.363768662 770.858356882L226.397878203 757.191026035L206.822110986 741.483434006L188.764285 723.87273375L172.352218232 704.49607822L157.713728672 683.490620371L144.976634307 660.993513157L134.268753125 637.141909531L125.717903115 612.072962449L119.451902266 585.923824863L115.598568564 558.831649729L114.28572 530.93359L115.598568564 503.035532031L119.451902266 475.943358437L125.717903115 449.794222187L134.268753125 424.72527625L144.976634307 400.873673594L157.713728672 378.376567187L172.352218232 357.37111L188.764285 337.994455L206.822110986 320.383755156L226.397878203 304.676163437L247.363768662 291.008832812L269.591964375 279.51891625L292.954647354 270.343566719L317.323999609 263.619937187L342.572203154 259.485180625L368.57144 258.07645L394.570678494 259.485180625L419.818883262 263.619937187L444.18823636 270.343566719L467.550919844 279.51891625L489.779115769 291.008832812L510.745006191 304.676163437L530.320773167 320.383755156L548.37859875 337.994455L564.790664998 357.37111L579.429153965 378.376567187L592.166247708 400.873673594L602.874128281 424.72527625L611.424977742 449.794222187L617.690978145 475.943358437L621.544311545 503.035532031L622.85716 530.93359L622.85716 530.93359"
+       style="fill:none;fill-opacity:1;stroke:#000000;stroke-width:7.90000009999999975;stroke-miterlimit:4;stroke-opacity:1" />
+  </g>
+</svg>

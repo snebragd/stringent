@@ -2,6 +2,9 @@
 #include <SPI.h>
 #include <SD.h>
 
+
+static File batteryFile;
+
 //#define DEFAULT_PLOT_SIZE 100
 
 //skip targa to preserve program memory
@@ -88,10 +91,14 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
     svgName[0] = '0'+plotNo;    
     svgFile = SD.open(svgName, FILE_READ);
     if(svgFile) {
-        //found autocad svg format
+        //found svg
 #ifdef SERIAL_DEBUG
         Serial.println("found svg file"); 
 #endif
+    }
+    else {
+      //failed to find file make some noise      
+      makePenNoise();      
     }
 #endif //ENABLE_SVG
 
@@ -105,6 +112,10 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
   else
 #endif //ENABLE_SVG  
   {
+#ifdef SERIAL_DEBUG
+        Serial.print("reading in-memory plot nr:"); 
+        Serial.println(plotNo); 
+#endif
     int intX, intY;
     bool ret = getMemoryData(plotNo, point, &intX, &intY, pen);
     *x = (float)intX;
@@ -126,6 +137,24 @@ bool getMemoryData(int plotNo, int point, int *x, int* y, int* pen)
   }  
 }
 
+static float batteryAverage=800; //just start with something above threshold
+#define BATTERY_THRESHOLD 650
+
+void logBattery(int secsSinceStart) {
+  int batt = analogRead(0);
+  batteryFile.print(secsSinceStart);
+  batteryFile.print(' ');
+  batteryFile.println(batt);
+  batteryFile.flush();
+  
+  batteryAverage = 0.99*batteryAverage + 0.01*batt;
+  if(batteryAverage < BATTERY_THRESHOLD) {
+    batteryFile.println("LOW BATTERY!");
+    batteryFile.flush();
+    stopPressed = true; //stop plot and persist state to eeprom to allow resume after battery has been changed
+  }  
+}
+
 void setupData()
 {
   // make sure that the default chip select pin is set to
@@ -138,6 +167,9 @@ void setupData()
     // don't do anything more:
     return;
   }  
+  
+  batteryFile = SD.open("battery.log", FILE_WRITE);;      
+
 }
 
 // **************** Svg path ***************************
@@ -168,6 +200,7 @@ seekTo(char* pattern)
 
 bool
 seekToPathStart() {
+    svgFile.seek(0);  //rewind (we could have paused)
     if(!seekTo("<path")) {
 #ifdef SERIAL_DEBUG
       Serial.println("No <path> tag");    
@@ -255,9 +288,11 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
   if(point == 0) {
     long pathPosition;
     long segments = 0;
+    
+    lastReadPoint = -1;
+    
     //first read, get dimensions
-
-    if(!seekToPathStart()) {
+    if(!seekToPathStart()) {      
 #ifdef SERIAL_DEBUG
       Serial.println("No path found in svg file!");    
 #endif
@@ -267,6 +302,9 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
       Serial.println("Woho found <path> in svg file!");    
 #endif
     pathPosition = svgFile.position();
+
+    min_y = min_x = 100000000.0;
+    max_y = max_x = -100000000.0;
 
     while(true) {
       if(getNextPathSegment(x, y, pen)) {
@@ -280,7 +318,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
         break;
       }
     }
-    scaleFactor = 200.0 / max( (max_x-min_x) , (max_y-min_y) );
+    scaleFactor = (disparity*0.3) / max( (max_x-min_x) , (max_y-min_y) );
     
 #ifdef SERIAL_DEBUG
       Serial.print("Segments=");    
@@ -319,8 +357,8 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
     *pen = lastPen;    
   }
 #ifdef SERIAL_DEBUG
-      Serial.print(*pen ? "L " : "M ");    
-      Serial.println(point);    
+//      Serial.print(*pen ? "L " : "M ");    
+//      Serial.println(point);    
 #endif        
 
   return true;
