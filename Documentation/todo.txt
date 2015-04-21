@@ -1,4 +1,13 @@
 
+
+low battery, only trigger if starting above! (usb power less)
+fjäderupphängning
+mindre 3dprint
+
+
+
+max speed som funktion av curvature?
+
 Testning
 v noggranhet?
   måtten stämmer helt

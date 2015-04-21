@@ -10,7 +10,7 @@
 #define stepsPerMM (stepsPerRotation/spoolCirc)
 
 //longest allowed line segment before splitting
-#define maxSegmentLength 5 
+#define maxSegmentLength 10 
 
 //using serial debug will interfere with IR and Servo that are using pin 0 and 1 (TX/RX)
 //#define SERIAL_DEBUG
@@ -170,10 +170,10 @@ void loop()
         program = 0;
         resumePlot = false; //make sure to not end up in loop if plot cannot be resumed due to missing file or corrupt data        
 
-        step(0, 0); //flush out last line segment
-
         //stop with pen up        
         movePen(false);
+        
+        step(0, 0); //flush out last line segment
         
         //store current position in eeprom 
         storePositionInEEPROM();

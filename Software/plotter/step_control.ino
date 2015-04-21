@@ -1,4 +1,5 @@
 
+//current stepper position in step sequence (not global position)
 long currLeftPos = 0;
 long currRightPos = 0;
 
@@ -12,12 +13,25 @@ byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
 byte leftPins[4] = {9,8,7,6};
 byte rightPins[4] = {5,4,3,2};
 
-//#define MIN_DELAY 600
-#define MIN_DELAY 1220
+//shortest reliable delay seems to be around 600 (1220 used previously)
+#define MIN_DELAY 600
 #define MAX_DELAY 20000
-#define MAX_ACCEL ((MAX_DELAY-MIN_DELAY)/((maxSegmentLength/2)*stepsPerMM))
 
-unsigned int delayMicros = MIN_DELAY;
+//Allowed speed in steps/us
+#define MAX_SPEED (1.0/MIN_DELAY)
+#define MIN_SPEED (1.0/MAX_DELAY)
+
+//Current speed in steps / ms
+float currentSpeed = MIN_SPEED; 
+
+//distance travelled before reaching full speed
+//#define FULL_SPEED_DIST (maxSegmentLength/2.0)
+#define FULL_SPEED_DIST 20.0
+
+//acceleration in speed / step (yes, weird unit).
+#define D_SPEED ((MAX_SPEED-MIN_SPEED) / (stepsPerMM*FULL_SPEED_DIST))
+
+unsigned int delayMicros = 1.0/MAX_SPEED;
 
 //disable steppers after half a second of inactivity
 #define DISABLE_TIMEOUT 500000
@@ -64,11 +78,9 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 */
 void step(long nextLeftSteps, long nextRightSteps)
 {
-  bool accStart=accStop; //only accellerate if we breaked the previous segment
   accStop = false;
   
   long numSteps = max(abs(leftSteps), abs(rightSteps));
-  long startBreakingAt = numSteps;
 
   float nextDir = atan2(nextLeftSteps,nextRightSteps);  
   float diff = abs(nextDir-prevDir);
@@ -84,13 +96,7 @@ void step(long nextLeftSteps, long nextRightSteps)
 //    }
   } 
   prevDir = nextDir;  
-  
-  delayMicros = (accStart > 0) ? MAX_DELAY : MIN_DELAY;
-
-  if(accStop) {    
-    startBreakingAt = numSteps-(MAX_DELAY-MIN_DELAY)/MAX_ACCEL;    
-  }
-  
+    
   if(numSteps > 0) {
      float leftPerStep = abs(leftSteps) / (float)numSteps;
      float rightPerStep = abs(rightSteps) / (float)numSteps;     
@@ -143,15 +149,16 @@ void step(long nextLeftSteps, long nextRightSteps)
          lastStepChange = micros();
        }  
      
-      if(accStop && startBreakingAt <= 0) {    
-        delayMicros = min(delayMicros+MAX_ACCEL, MAX_DELAY);
+      numSteps = max(abs(leftSteps), abs(rightSteps));     
+      if(accStop && currentSpeed >= (numSteps*D_SPEED + MIN_SPEED)) {    
+        //start breaking
+        currentSpeed = max(currentSpeed-(currentSpeed/numSteps), MIN_SPEED);
       }      
-      else if(accStart) {
-        delayMicros = max(delayMicros-MAX_ACCEL, MIN_DELAY);
+      else {
+        currentSpeed = min(currentSpeed+D_SPEED, MAX_SPEED);
       }  
-      startBreakingAt--;
       
-       delayMicroseconds(delayMicros); 
+       delayMicroseconds(1.0 / currentSpeed); 
      }
    }  
    if((micros()-lastStepChange) > DISABLE_TIMEOUT) {     
@@ -164,11 +171,5 @@ void step(long nextLeftSteps, long nextRightSteps)
    
    leftSteps = nextLeftSteps;
    rightSteps = nextRightSteps;
-}
-
-void getCurrentPosition(int* left, int* right)
-{
-  *left = currLeftPos; 
-  *right = currRightPos; 
 }
 

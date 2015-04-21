@@ -99,6 +99,7 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
     else {
       //failed to find file make some noise      
       makePenNoise();      
+      return false;
     }
 #endif //ENABLE_SVG
 

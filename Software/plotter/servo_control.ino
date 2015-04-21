@@ -28,11 +28,12 @@ void setupServo()
 
 void makePenNoise()
 {
+  int p = oldPos;  
   for(int i=0;i<4;i++) {
-    myservo.write((int)oldPos-5);    
-    delayMicroseconds(200000); 
-    myservo.write((int)oldPos);    
-    delayMicroseconds(200000); 
+    myservo.write((int)p-15);    
+    delayMicroseconds(400000); 
+    myservo.write((int)p);    
+    delayMicroseconds(400000); 
   }  
 }
 
