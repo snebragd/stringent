@@ -151,7 +151,7 @@ void loop()
         currentLeftSteps += manualLeft*stepsPerMM;
         currentRightSteps += manualRight*stepsPerMM;
              
-        step(manualLeft*stepsPerMM,manualRight*stepsPerMM);
+        step(manualLeft*stepsPerMM,manualRight*stepsPerMM,false);
         setOrigo();             
       }
 
@@ -173,7 +173,7 @@ void loop()
         //stop with pen up        
         movePen(false);
         
-        step(0, 0); //flush out last line segment
+        step(0, 0, false); //flush out last line segment
         
         //store current position in eeprom 
         storePositionInEEPROM();
@@ -239,7 +239,7 @@ void loop()
           else {
   #ifndef SERIAL_DEBUG
             movePen(prevPen); //adjust pen as necessary  
-            step(dLeft, dRight); //move steppers
+            step(dLeft, dRight, prevPen != nextPen); //move steppers
             prevPen=nextPen;
   #endif          
           }

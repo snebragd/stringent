@@ -8,7 +8,7 @@ Servo myservo;
 
 //disable to preserve space
 #define USE_SMOOTH_SERVO
-#define USE_LINEAR_SERVO
+//#define USE_LINEAR_SERVO
 
 
 #define UP 100

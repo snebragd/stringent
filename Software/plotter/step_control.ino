@@ -76,9 +76,9 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
    }
 }
 */
-void step(long nextLeftSteps, long nextRightSteps)
+void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
 {
-  accStop = false;
+  accStop = forceStop;
   
   long numSteps = max(abs(leftSteps), abs(rightSteps));
 
