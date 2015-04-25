@@ -78,6 +78,11 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 */
 void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
 {
+#ifdef USE_MOCKED_STEPPERS
+    printf("step %3ld %3ld\n", nextLeftSteps, nextRightSteps);
+#endif
+  
+  
   accStop = forceStop;
   
   long numSteps = max(abs(leftSteps), abs(rightSteps));

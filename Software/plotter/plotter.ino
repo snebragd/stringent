@@ -49,8 +49,18 @@ static float prevX = 0;
 static float prevY = 0;
 static int currentSubSegment = 0;
 
+void storePositionInEEPROM();
+
 void setup()
 {
+#ifdef USE_DATA_FROM_DISK
+  //store constant values into mock eeprom, wait 1sec first to allow storage
+  delayMicroseconds(1000000);  
+  storePositionInEEPROM();
+  printf("disparity=%3ld\n", disparity);
+  
+#endif
+  
 #ifdef SERIAL_DEBUG
   //Initialize serial and wait for port to open:
     Serial.begin(9600); 
@@ -179,6 +189,10 @@ void loop()
         storePositionInEEPROM();
       }
       else {
+#ifdef USE_MOCKED_STEPPERS
+    printf("state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
+#endif        
+        
          if(resumePlot && stoppedAt > state) {
            //just skip points until we are at the point where we stopped
              state++;
@@ -232,7 +246,7 @@ void loop()
                   
           currentLeftSteps = newLeft;
           currentRightSteps = newRight;
-  
+    
           if(((dLeft == 0) && (dRight == 0))) {
             //no move, ignore
           }

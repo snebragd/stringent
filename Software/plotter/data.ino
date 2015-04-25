@@ -1,7 +1,14 @@
+#ifndef USE_DATA_FROM_DISK
+
 #include <avr/pgmspace.h>
 #include <SPI.h>
 #include <SD.h>
 
+#endif
+
+bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen);
+bool getSvgData(int plotNo, int point, float *x, float* y, int* pen);
+bool getMemoryData(int plotNo, int point, int *x, int* y, int* pen);
 
 static File batteryFile;
 
@@ -11,7 +18,7 @@ static File batteryFile;
 #define ENABLE_SVG
 
 //square 100mm
-int nStates1 = 6;
+#define nStates1 6
 PROGMEM prog_int16_t xArray1[] = {-50, 50, 50, -50, -50, 0};
 PROGMEM prog_int16_t yArray1[] = {-50, -50, 50, 50, -50, 0};
 PROGMEM prog_int16_t penArray1[] = {0,1,1,1,1, 0};
@@ -53,7 +60,7 @@ prog_int16_t* penArray[] = {penArray1};
 
 static int currentlySelectedPlot = -1;
 
-#ifdef ENABLE_SVG  
+#ifdef ENABLE_SVG 
 static File svgFile;
 #endif
 
@@ -142,6 +149,7 @@ static float batteryAverage=800; //just start with something above threshold
 #define BATTERY_THRESHOLD 650
 
 void logBattery(int secsSinceStart) {
+#ifndef USE_DATA_FROM_DISK  
   int batt = analogRead(0);
   batteryFile.print(secsSinceStart);
   batteryFile.print(' ');
@@ -154,6 +162,7 @@ void logBattery(int secsSinceStart) {
     batteryFile.flush();
     stopPressed = true; //stop plot and persist state to eeprom to allow resume after battery has been changed
   }  
+#endif
 }
 
 void setupData()
@@ -168,9 +177,9 @@ void setupData()
     // don't do anything more:
     return;
   }  
-  
+#ifndef USE_DATA_FROM_DISK
   batteryFile = SD.open("battery.log", FILE_WRITE);;      
-
+#endif
 }
 
 // **************** Svg path ***************************
@@ -331,7 +340,13 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
       Serial.print("Max_x=");    
       Serial.println(max_x);    
 
-#endif    
+#endif  
+
+#ifdef USE_MOCKED_STEPPERS
+    printf("segments=%3ld scale=%2.2f max_x=%2.2f disparity=%ld\n", segments, scaleFactor, max_x, disparity);
+#endif        
+
+
     svgFile.seek(pathPosition);    
   }
 
