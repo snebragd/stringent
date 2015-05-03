@@ -1,4 +1,5 @@
 import javax.swing.*;
+import javax.imageio.*;
 import java.awt.*;
 import java.awt.image.*;
 import java.io.*;
@@ -100,8 +101,7 @@ public class PlotVisualizer implements Runnable
     public void run() {
 	while(true) {
 	    try {
-		Thread.sleep(25);
-	
+		Thread.sleep(25);	
 		SwingUtilities.invokeAndWait(new Runnable() {
 			public void run() {
 			    updateUI();
@@ -160,6 +160,15 @@ public class PlotVisualizer implements Runnable
 
 	while(true) {
 	    String str = br.readLine();
+	    if(str == null) {
+		try {
+		    // retrieve image
+		    File outputfile = new File("/tmp/plot.png");
+		    ImageIO.write(getImage(), "png", outputfile);
+		} catch (IOException e) { }
+
+		System.exit(0); //dirty way out
+	    }
 	    tok = new StringTokenizer(str, " =");
 	    long timestamp = Long.parseLong(tok.nextToken());
 	    int pin = Integer.parseInt(tok.nextToken());
@@ -175,7 +184,8 @@ public class PlotVisualizer implements Runnable
 	    }
 	    if(servoPos == 20) {
 		double pos[] = PlotVisualizer.getPos();	 
-		img.setRGB((int)pos[0],(int)pos[1],0xffffffff);
+		for(int y=-1;y<2;y++) for(int x=-1;x<2;x++) 
+					  img.setRGB((int)pos[0]+x,(int)pos[1]+y,0xffffffff);
 	    }
 	}
     }
@@ -274,7 +284,7 @@ class Stepper {
 
  class TestPane extends JPanel {
      public Dimension getPreferredSize() {
-	 return new Dimension(400, 800);
+	 return new Dimension(500, 1000);
      }
      
      protected void paintComponent(Graphics g) {
@@ -296,7 +306,7 @@ class Stepper {
 	 g.drawLine(0,0,         (int)(pos[0]/mmPerPixel),(int)(pos[1]/mmPerPixel));
 	 g.drawLine(size.width,0,(int)(pos[0]/mmPerPixel),(int)(pos[1]/mmPerPixel));
 
-	 g.setColor(Color.BLACK);	 
+	 g.setColor(Color.GREEN);	 
 	 int pSize = (int)((1.0-(PlotVisualizer.getServoPos()-20)/(110-20.0))*10+2);
 	 g.fillOval((int)(pos[0]/mmPerPixel)-pSize/2,(int)(pos[1]/mmPerPixel)-pSize/2, pSize, pSize);	 
      }

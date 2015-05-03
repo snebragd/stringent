@@ -57,8 +57,8 @@ void setup()
   //store constant values into mock eeprom, wait 1sec first to allow storage
   delayMicroseconds(1000000);  
   storePositionInEEPROM();
-  printf("disparity=%3ld\n", disparity);
-  
+  printf("[disparity, currentLeftSteps, currentRightSteps, centerX, centerY]\n");
+  printf("%ld, %ld, %ld, %f, %f\n", disparity, currentLeftSteps, currentRightSteps, centerX, centerY);  
 #endif
   
 #ifdef SERIAL_DEBUG
@@ -190,7 +190,7 @@ void loop()
       }
       else {
 #ifdef USE_MOCKED_STEPPERS
-    printf("state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
+//    printf("state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
 #endif        
         
          if(resumePlot && stoppedAt > state) {

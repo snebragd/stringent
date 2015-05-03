@@ -328,7 +328,8 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
         break;
       }
     }
-    scaleFactor = (disparity*0.3) / max( (max_x-min_x) , (max_y-min_y) );
+//    scaleFactor = (disparity*0.3) / max( (max_x-min_x) , (max_y-min_y) );
+    scaleFactor = (disparity*0.4) / (max_x-min_x); //fill 40% of disparity as default
     
 #ifdef SERIAL_DEBUG
       Serial.print("Segments=");    
@@ -343,7 +344,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
 #endif  
 
 #ifdef USE_MOCKED_STEPPERS
-    printf("segments=%3ld scale=%2.2f max_x=%2.2f disparity=%ld\n", segments, scaleFactor, max_x, disparity);
+   // printf("segments=%3ld scale=%2.2f max_x=%2.2f disparity=%ld\n", segments, scaleFactor, max_x, disparity);
 #endif        
 
 
