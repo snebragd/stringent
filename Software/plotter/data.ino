@@ -240,9 +240,14 @@ readFloat(float* ret) {
       return false;
     } 
     else if((tmp[i] >= '0') && (tmp[i] <= '9')) {
-      f = f*10+(tmp[i]-'0');      
-      if(pastPoint) {
-         div = div*10;
+      if(div < 100) { 
+        f = f*10+(tmp[i]-'0');      
+        if(pastPoint) {
+           div = div*10;
+        }
+      }
+      else {
+        //only care for two decimals
       }
     }
     else if(tmp[i] == '.') {
