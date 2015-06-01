@@ -183,7 +183,9 @@ public class PlotVisualizer implements Runnable
 		rightStepper.setPin(pin,val > 0);
 	    }
 	    if(servoPos == 20) {
-		double pos[] = PlotVisualizer.getPos();	 
+		double pos[] = PlotVisualizer.getPos();	 		
+		pos[0] = Math.min(Math.max(0.0,pos[0]), disparity-2);
+		pos[1] = Math.min(Math.max(0.0,pos[1]), disparity*2-2);
 		for(int y=-1;y<2;y++) for(int x=-1;x<2;x++) 
 					  img.setRGB((int)pos[0]+x,(int)pos[1]+y,0xffffffff);
 	    }

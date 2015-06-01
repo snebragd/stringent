@@ -155,6 +155,7 @@ void readIR()
 	//	fprintf(stderr,"%d\n",currentPlot);
       }
       else {
+	fprintf(stderr, "plot time = %.1f s\n", micros()/1000000.0);
 	exit(0);
       }
     }
@@ -191,7 +192,7 @@ typedef unsigned char byte;
 #define B0011 0b0011
 #define B0001 0b0001
 #define B1001 0b1001
-#define digitalWrite(pin, val) printf("%ld %d=%d\n",micros(), (pin),(val))
+#define digitalWrite(pin, val) printf("%lu %d=%d\n",micros(), (pin),(val))
 #define spoolCirc 94.2 
 #define stepsPerRotation 4075.7728395
 #define stepsPerMM (stepsPerRotation/spoolCirc)

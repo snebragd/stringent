@@ -190,7 +190,7 @@ void loop()
       }
       else {
 #ifdef USE_MOCKED_STEPPERS
-//    printf("state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
+//    fprintf(stderr,"state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
 #endif        
         
          if(resumePlot && stoppedAt > state) {

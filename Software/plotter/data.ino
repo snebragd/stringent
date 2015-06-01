@@ -209,8 +209,10 @@ seekTo(char* pattern)
 }
 
 bool
-seekToPathStart() {
+seekToPathStart(bool rewindFile) {
+  if(rewindFile) {
     svgFile.seek(0);  //rewind (we could have paused)
+  }
     if(!seekTo("<path")) {
 #ifdef SERIAL_DEBUG
       Serial.println("No <path> tag");    
@@ -232,7 +234,8 @@ readFloat(float* ret) {
   char tmp[20];
   float f=0;
   bool pastPoint=false;
-  long div = 1;
+  bool exp=0;
+  float div = 1;
   
   for(int i=0 ; i<20 ; i++) {
     tmp[i] = svgFile.read();
@@ -240,7 +243,17 @@ readFloat(float* ret) {
       return false;
     } 
     else if((tmp[i] >= '0') && (tmp[i] <= '9')) {
-      if(div < 100) { 
+      if(exp > 0) {
+	for (int e=(tmp[i]-'0') ; e > 0; e--) {
+	  div = div/10;
+	}
+      }
+      if(exp <  0) {
+	for (int e=(tmp[i]-'0') ; e > 0; e--) {
+	  div = div*10;
+	}
+      }
+      else if(div < 100) { 
         f = f*10+(tmp[i]-'0');      
         if(pastPoint) {
            div = div*10;
@@ -253,6 +266,17 @@ readFloat(float* ret) {
     else if(tmp[i] == '.') {
       pastPoint=true;
     }
+    else if(tmp[i] == '-') {
+      if(exp != 0) {
+	exp = -1;
+      }
+      else {
+	div = -1;
+      }
+    }
+    else if(tmp[i] == 'e') {
+      exp = 1;
+    }
     else {
       break;
     }   
@@ -263,26 +287,65 @@ readFloat(float* ret) {
 }
 
 bool
-getNextPathSegment(float *x, float *y, int *line)
+getNextPathSegment(float *x, float *y, int *line, bool first)
 {
-  char c = svgFile.read();
-  
-  if(c == 'M') {
-    *line = 0;     
+  char c;
+  bool rel = false;
+  static float lastX, lastY;
+
+  while(true) {
+    if(first) {
+      lastX=lastY=0.0;
+    }
+
+    c = svgFile.read();
+    //    fputc(c,stdout);
+    if(c == 'M') {
+      *line = 0;     
+    }
+    else if(c=='m') {
+      *line = 0;     
+      svgFile.read(); //eat a space byte
+      rel = true;
+    }
+    else if(c == 'L') {
+      *line = 1;
+    }
+    else if(c==' ' || c=='l') {
+      *line = 1;
+      rel = true;
+      continue;
+    }
+    else if(((c >= '0') && (c <= '9')) || c=='-') {
+      svgFile.seek(svgFile.position()-1);       
+    }
+    else {
+      //reached end, look for another <path
+      if(seekToPathStart(false)) {
+	first = true;
+	continue;
+      }
+      else {
+	return false;
+      }
+    }      
+    break;
   }
-  else if(c == 'L') {
-    *line = 1;
-  }
-  else {
-    return false;
-  }      
   
   if(!readFloat(x)) {
     return false;    
   } 
   if(!readFloat(y)) {
     return false;    
-  } 
+  }
+
+  if(rel) {
+    *x += lastX;
+    *y += lastY;
+  }
+  lastX = *x;
+  lastY = *y;
+ 
   //rewind one byte that was eaten by last float read  
   svgFile.seek(svgFile.position()-1); 
     
@@ -307,7 +370,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
     lastReadPoint = -1;
     
     //first read, get dimensions
-    if(!seekToPathStart()) {      
+    if(!seekToPathStart(true)) {      
 #ifdef SERIAL_DEBUG
       Serial.println("No path found in svg file!");    
 #endif
@@ -322,7 +385,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
     max_y = max_x = -100000000.0;
 
     while(true) {
-      if(getNextPathSegment(x, y, pen)) {
+      if(getNextPathSegment(x, y, pen,segments==0)) {
         segments++;        
         min_x = min(min_x, *x);
         max_x = max(max_x, *x);
@@ -349,7 +412,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
 #endif  
 
 #ifdef USE_MOCKED_STEPPERS
-   // printf("segments=%3ld scale=%2.2f max_x=%2.2f disparity=%ld\n", segments, scaleFactor, max_x, disparity);
+      fprintf(stderr,"segments=%3ld scale=%2.2f x=[%2.2f , %2.2f] y=[%2.2f , %2.2f] disparity=%ld\n", segments, scaleFactor, min_x,max_x, min_y, max_y, disparity);
 #endif        
 
 
@@ -357,7 +420,7 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
   }
 
   if(point != lastReadPoint) {
-    if(getNextPathSegment(x, y, pen)) {
+    if(getNextPathSegment(x, y, pen,point==0)) {
       *x = (*x-min_x)*scaleFactor;   
       *y = (*y-min_y)*scaleFactor;
    

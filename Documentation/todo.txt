@@ -3,10 +3,17 @@
 low battery, only trigger if starting above! (usb power less)
 fjäderupphängning
 mindre 3dprint
-
-
-
+testknapp för up/down
+testa och använd ljudfeedback
+lägesgivare/encoder för stegmotorerna
+testa hur/när stegmoroerna tappar steg. Motstånd, hastighet, spänning. 
+Bättre stegmotordrivare? Läs på.
 max speed som funktion av curvature?
+klara av flera paths i svg fil
+hantera flera färger
+
+fill_svg, marginaler
+fill_svg, fyll olika färger med olika mönster
 
 Testning
 v noggranhet?
@@ -83,7 +90,8 @@ v accel mattebug, stannar mitt i cirkelbåge?
 - hindra ritning utanför disparity
 v skalar fel om ocentrerad svg?
 v hackar i transitions mellan segments? finns segments när pennan uppe?
-- bättre acceleration
- 
+v bättre acceleration
+- tuna parametrar för accel
+
 Don't do:
 - Ladda upp design över ir?
