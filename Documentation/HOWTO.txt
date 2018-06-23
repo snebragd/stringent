@@ -1,8 +1,55 @@
-Building the Stringent plotter
+****************************
+HOWTO for using the plotter
+****************************
+
+Set-up and Calibrating:
+- Find a surface to draw on
+- Power up the plotter
+- Reel out some string on both left and right
+- untangle strings and identify left and right
+- left string goes to the right reel and vice versa (strings cross)
+- Fasten the left string to the top-left corner of drawing surface
+- reel-in/out left string to where the 20 cm mark is at where the strings cross
+- Press the "set left" button
+- reel out the left string enough to fasten the right string to the top-right corner
+- left and right corners must be at the same height
+- reel-in/out so that the right string has its 20 cm mark at the crossing and is straight below the top-right corner. No slack on the left string.
+- Press the "set right" button.
+- The plotter is now ready to plot
+
+Mounting pen:
+- Pen goes in the hole
+- Make it stay in place by rubber bands, zip-ties, foam plastic, tape, or whatever fits your pen of choice
+- The tip of the pen should be just a tiny little bit away (0.5mm-ish) from the drawing surface when idling
+
+Plotting:
+- Reel in/out strings to position the plotter at where you want to draw (pen at top-left corner of plot)
+- Start plot by pressing the plot number you want
 
 
+Good to know:
+- Default plot size is 60% of the drawing surface width. Pressing "big" will make it 90%, pressing "small" will make it 30%.
+- When pressing "stop" the plotting stops. Plot can be resumed by pressing "resume"
+- Plotting will stop automatically when starting to run out of battery
+- The previous plot can be resumed after changing battery
+- There is a log file for battery level stored to the sd card. Fun to look at, useful when tuning auto-stop.
 
----
-BOM
----
+Making a plot file:
+- The plotter reads .svg-files.
+- It only interprets lines, no curves
+- Parsing is very limited, you might have to tweak a bit to make it work. Use the simulator to test!
+- Suggest using inkscape, select all curves and convert to lines by "extensions->modify path->flatten beziers". 
+- Plot files should be named "1.svg", "2.svg", ...
 
+DO
+- Try playing around with multiple colors. Either by stopping/resuming while changing pen or by separating colors into multiple .svg files that you print after one another.
+- If possible, make your plots start from eg. the top and progress downwards. By not moving back and forth too much you will avoid uglinessess from misalignment due to missed stepper motor steps (typically when torque is not enogh to move up at steep angles)
+- Mount the strings to the surface as close to the surface as possible, otherwise you will not get any pressure on the pen. Tip: some mountings can benefit from you putting a piece of tape over the string to get it all the way in to the wall.
+- Use the simulator. Really. Use it. 
+
+DON'T
+- Avoid setting up plot surface so that you get bad string angles. Try to hang high, print low. 
+- Don't connect the USB and program the arduino without first disconnecting pin 0 and 1 from servo and IR. (works, but usb controller will fry eventually)
+- Avoid printing outside the printable area. You will get slack on the strings and end up with everything tangled up.
+- Don't try to get a plot to plot without first running it through the simulator. Unless you really know what you are doing, then run the simulator anyway. 
+ 

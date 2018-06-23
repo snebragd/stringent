@@ -1,3 +1,4 @@
+#include "MachineDefs.h"
 
 //current stepper position in step sequence (not global position)
 long currLeftPos = 0;
@@ -5,13 +6,15 @@ long currRightPos = 0;
 
 byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
 
+#ifdef PLOTTER_HARDWARE_1
 //original order
-//byte leftPins[4] = {6,7,8,9};
-//byte rightPins[4] = {2,3,4,5};
-
+byte leftPins[4] = {6,7,8,9};
+byte rightPins[4] = {2,3,4,5};
+#else
 //flipped order
 byte leftPins[4] = {9,8,7,6};
 byte rightPins[4] = {5,4,3,2};
+#endif
 
 //shortest reliable delay seems to be around 600 (1220 used previously)
 #define MIN_DELAY 600
@@ -26,7 +29,7 @@ float currentSpeed = MIN_SPEED;
 
 //distance travelled before reaching full speed
 //#define FULL_SPEED_DIST (maxSegmentLength/2.0)
-#define FULL_SPEED_DIST 20.0
+#define FULL_SPEED_DIST 5.0
 
 //acceleration in speed / step (yes, weird unit).
 #define D_SPEED ((MAX_SPEED-MIN_SPEED) / (stepsPerMM*FULL_SPEED_DIST))
@@ -53,6 +56,7 @@ static bool accStop=true; //did we break the last segment
 #define ACC_DIR_THRESHOLD (PI/4)
 #define DIR_CHANGE_WAIT 1000
 /*
+ * this code should really be in use to avoid the duplication below. there was some bug, there was no time, so here it is commented out...
 void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 {
   if(*fraction >= 1.0) { //step

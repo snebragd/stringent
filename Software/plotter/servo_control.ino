@@ -1,3 +1,5 @@
+#include "MachineDefs.h"
+
 #ifndef SERIAL_DEBUG  
 
 #include <Servo.h> 
@@ -11,7 +13,11 @@ Servo myservo;
 //#define USE_LINEAR_SERVO
 
 
-#define UP 100
+#if defined PLOTTER_HARWARE_1
+#define UP 80
+#else
+#define UP 110
+#endif
 #define DOWN 20
 
 #define SERVO_PIN 0
@@ -31,9 +37,9 @@ void makePenNoise()
   int p = oldPos;  
   for(int i=0;i<4;i++) {
     myservo.write((int)p-15);    
-    delayMicroseconds(400000); 
+    delay(400000); 
     myservo.write((int)p);    
-    delayMicroseconds(400000); 
+    delay(400000); 
   }  
 }
 

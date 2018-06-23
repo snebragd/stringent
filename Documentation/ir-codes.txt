@@ -1,4 +1,4 @@
-pioneer dvd
+*********************** PIONEER_DVD_REMOTE *******************
 F50A1DE2  left -
 F50AED12  left +
 C53AD926  right -
@@ -37,7 +37,8 @@ F50A956A  9
 F50A05FA  0
 
 
-small remote
+
+****************** NONAME_WHITE_REMOTE *************
 
 FFA25D pow
 FFE21D menu

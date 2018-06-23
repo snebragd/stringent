@@ -1,4 +1,5 @@
 #include <EEPROM.h>
+#include "MachineDefs.h"
 
 void eepromWriteLong(int addr, long data) {
   for(int b=0 ; b<4 ; b++) {

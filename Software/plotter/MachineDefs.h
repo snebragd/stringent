@@ -1,0 +1,9 @@
+
+#define HAS_BATTERY_MEASUREMENT 
+
+//old pin order
+//#define PLOTTER_HARDWARE_1
+
+//#define PIONEER_DVD_REMOTE
+#define NONAME_WHITE_REMOTE
+

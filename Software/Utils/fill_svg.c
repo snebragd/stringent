@@ -1,3 +1,11 @@
+/**
+ * 
+ * This is a horrible hack to fill an svg drawing with lines. It is equally crappy at parsing .svg as the plotter itself,
+ * guess that doesn't make it any better. Sorry.
+ * /Fredrik
+ *
+ */
+
 #include <math.h>
 #include <stdio.h>
 #include <stdlib.h>
@@ -185,8 +193,8 @@ bool getSvgData(int point, float *x, float* y, int* pen)
 
   if(point != lastReadPoint) {
     if(getNextPathSegment(x, y, pen)) {
-      *x = (*x-min_x)*scaleFactor;   
-      *y = (*y-min_y)*scaleFactor;
+      //      *x = (*x-min_x)*scaleFactor;   
+      // *y = (*y-min_y)*scaleFactor;
    
       lastReadPoint = point;
       lastX = *x;
@@ -313,7 +321,8 @@ int main(int argc, char **argv)
   bool fwd=true;
   //generate and output fill  
   Point* intersections = malloc(nLines*sizeof(Point));
-for(y=-max_size*1.42 ; y < max_size*1.42 ; y += fill_step) {
+  //for(y=-max_size*1.42 ; y < max_size*1.42 ; y += fill_step) {
+for(y=min_y-1000 ; y < max_y+1000 ; y += fill_step) {
     int nIntersections = 0;
     int l;
     for(l=0 ; l<nLines ; l++) {

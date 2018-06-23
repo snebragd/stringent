@@ -21,10 +21,8 @@ static unsigned long fake_time=0;
 
 int my_usleep(unsigned long usec)
 {
-  if(fake_sleep) {
-    fake_time += usec;
-  }
-  else {
+  fake_time += usec;
+  if(!fake_sleep) {
     usleep(usec/time_multiplier);
   }
   return 0;
@@ -32,15 +30,15 @@ int my_usleep(unsigned long usec)
 
 unsigned long micros()
 {
-  if(fake_sleep) {
+  //  if(fake_sleep) {
     return fake_time;
-  }
-  else {
-    struct timeval tv;
-    gettimeofday(&tv,NULL);
-    //    printf("micros=%ld\n", tv.tv_usec);
-    return time_multiplier*(tv.tv_sec*1000000 + tv.tv_usec);
-  }
+    //  }
+    //else {
+    //struct timeval tv;
+    //gettimeofday(&tv,NULL);
+    ////    printf("micros=%ld\n", tv.tv_usec);
+    //return time_multiplier*(tv.tv_sec*1000000 + tv.tv_usec);
+    //}
 }
 
 //************** Mock servo *************
@@ -138,7 +136,7 @@ float eepromReadFloat(int addr) {
 FILE* ir_file = NULL;
 void setupIR() 
 {
-   ir_file = fopen("/tmp/irdata.txt", "r+");
+   ir_file = fopen("irdata.txt", "r+");
 }
 
 extern int currentPlot;
@@ -146,6 +144,7 @@ extern int program;
 
 void readIR()
 {
+  //just read from file what plot to start and kick it off
   if(program == 0) {
     if(ir_file) {
       char buf[100];

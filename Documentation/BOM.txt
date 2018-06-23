@@ -1,0 +1,20 @@
+
+Bill Of Materials
+-----------------
+
+Cost - Thing
+$5   - Arduino Uno (or similar) 
+$2   - Stepper 28BYJ-48 with driver
+$2   - Stepper 28BYJ-48 with driver
+$0.5 - Tsop 4838 IR-Reciever
+$1   - SPI Reader Micro SD Memory Card Reader
+$1   - 9G SG90 Micro Servo 
+
+     - Any old IR-Remote
+     - 3D printed parts (or similar made from wood, cardboard, duct tape, etc)
+     - Sewing thread, fishing line or any other string
+     - Paper clips for universal hanging, rubber bands for universal mounting
+     - Wires, connectors and your electronics scaffolding of preference
+     - 9V Battery or other means of power. (Cabled power is practical but ugly...)
+
+The prices above was grabbed from ebay 2018-06-09. Might be a whole lot more convenient to source parts locally instead, but likely at double the price at least. 

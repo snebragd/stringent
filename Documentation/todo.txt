@@ -1,4 +1,12 @@
 
+This todo-list is apparently in Swedish, sorry about that.
+
+/F
+
+----------------------
+bättre batteri brown out
+varför stänger inte av steppers längre?
+
 
 low battery, only trigger if starting above! (usb power less)
 fjäderupphängning

@@ -166,7 +166,7 @@ public class PlotVisualizer implements Runnable
 		    File outputfile = new File("/tmp/plot.png");
 		    ImageIO.write(getImage(), "png", outputfile);
 		} catch (IOException e) { }
-
+		Thread.sleep(2000);
 		System.exit(0); //dirty way out
 	    }
 	    tok = new StringTokenizer(str, " =");
@@ -303,14 +303,15 @@ class Stepper {
 	 g.setColor(Color.RED);
 	 double pos[] = PlotVisualizer.getPos();	 
 	 Dimension size = getSize();
-	 double mmPerPixel = PlotVisualizer.getDisparity()/(double)size.width;
+	 double mmPerPixelX = PlotVisualizer.getDisparity()/(double)size.width;
+	 double mmPerPixelY = 2*PlotVisualizer.getDisparity()/(double)size.height;
 	 
-	 g.drawLine(0,0,         (int)(pos[0]/mmPerPixel),(int)(pos[1]/mmPerPixel));
-	 g.drawLine(size.width,0,(int)(pos[0]/mmPerPixel),(int)(pos[1]/mmPerPixel));
+	 g.drawLine(0,0,         (int)(pos[0]/mmPerPixelX),(int)(pos[1]/mmPerPixelY));
+	 g.drawLine(size.width,0,(int)(pos[0]/mmPerPixelX),(int)(pos[1]/mmPerPixelY));
 
 	 g.setColor(Color.GREEN);	 
 	 int pSize = (int)((1.0-(PlotVisualizer.getServoPos()-20)/(110-20.0))*10+2);
-	 g.fillOval((int)(pos[0]/mmPerPixel)-pSize/2,(int)(pos[1]/mmPerPixel)-pSize/2, pSize, pSize);	 
+	 g.fillOval((int)(pos[0]/mmPerPixelX)-pSize/2,(int)(pos[1]/mmPerPixelY)-pSize/2, pSize, pSize);	 
      }
  }
 

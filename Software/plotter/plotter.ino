@@ -1,9 +1,9 @@
+#include "MachineDefs.h"
 
 //circumference of spool
-//#define spoolCirc 127.5 //old larger spool 
 #define spoolCirc 94.2 
 
-//steps per full rotation
+//steps per full rotation (number from https://github.com/robjampar/Stepper , never bothered to calculate it propery myself)
 #define stepsPerRotation 4075.7728395
 
 //number of steps for each full rotation
@@ -29,6 +29,7 @@ long stoppedAt=0; //save of where we stopped, to allow resuming
 int currentPlot = 0;
 bool resumePlot = false;
 
+//these numbers are left from early versions where setup was done by having exactly 1m of string reeled out on both left and right and a fix disparity of 1m between anchors. This is now set up by user instead.
 long disparity = 1000;  //distance between anchor points 
 long currentLeftSteps  = 1000*stepsPerMM; 
 long currentRightSteps = 1000*stepsPerMM;
@@ -44,7 +45,7 @@ int manualLeft = 0, manualRight = 0;
 float printSize = 1.0;
 bool continousManualDrive = true;
 
-//book keeping for sub segmenting lines
+//bookkeeping for sub segmenting lines
 static float prevX = 0;
 static float prevY = 0;
 static int currentSubSegment = 0;
@@ -144,13 +145,14 @@ void loop()
 {        
     float tmpX, tmpY;
     int tmpPen;
-    
+
+#ifdef HAS_BATTERY_MEASUREMENT    
     unsigned long now = micros();
     if((lastBatteryLog+1000000) <= now) {
       lastBatteryLog = now;
       logBattery(now/1000000);
     }
-    
+#endif    
     readIR(); 
 
     if(program == 0) {
@@ -182,17 +184,13 @@ void loop()
 
         //stop with pen up        
         movePen(false);
-        
+    
         step(0, 0, false); //flush out last line segment
         
         //store current position in eeprom 
         storePositionInEEPROM();
       }
       else {
-#ifdef USE_MOCKED_STEPPERS
-//    fprintf(stderr,"state=%3ld x=%2.2f y=%2.2f\n", state, tmpX, tmpY);
-#endif        
-        
          if(resumePlot && stoppedAt > state) {
            //just skip points until we are at the point where we stopped
              state++;
