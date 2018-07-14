@@ -1,12 +1,8 @@
 #include <IRremote.h>
 #include "MachineDefs.h"
 
-#define RECV_PIN  1
 IRrecv irrecv(RECV_PIN);
 decode_results results;  
-
-//#define PIONEER_DVD_REMOTE
-#define NONAME_WHITE_REMOTE
 
 #ifdef PIONEER_DVD_REMOTE
 /******************** PIONEER_DVD_REMOTE **********************/

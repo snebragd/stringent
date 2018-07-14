@@ -154,8 +154,10 @@ public class PlotVisualizer implements Runnable
 	//byte rightPins[4] = {5,4,3,2};
 
 	synchronized(stepMonitor) {
-	    leftStepper = new Stepper(currLeft, 9,8,7,6);
-	    rightStepper = new Stepper(currRight, 5,4,3,2);
+	    //	    leftStepper = new Stepper(currLeft, 9,8,7,6);
+	    //rightStepper = new Stepper(currRight, 5,4,3,2);
+	    leftStepper = new Stepper(currLeft, 6,7,8,9);
+	    rightStepper = new Stepper(currRight, 2,3,4,5);
 	}
 
 	while(true) {

@@ -6,15 +6,8 @@ long currRightPos = 0;
 
 byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
 
-#ifdef PLOTTER_HARDWARE_1
-//original order
-byte leftPins[4] = {6,7,8,9};
-byte rightPins[4] = {2,3,4,5};
-#else
-//flipped order
-byte leftPins[4] = {9,8,7,6};
-byte rightPins[4] = {5,4,3,2};
-#endif
+byte leftPins[4]  = {LEFT_STEP_PIN_1,  LEFT_STEP_PIN_2,  LEFT_STEP_PIN_3,  LEFT_STEP_PIN_4};
+byte rightPins[4] = {RIGHT_STEP_PIN_1, RIGHT_STEP_PIN_2, RIGHT_STEP_PIN_3, RIGHT_STEP_PIN_4};
 
 //shortest reliable delay seems to be around 600 (1220 used previously)
 #define MIN_DELAY 600

@@ -1,7 +1,7 @@
 #include "MachineDefs.h"
 
 #ifndef SERIAL_DEBUG  
-
+#include "MachineDefs.h"
 #include <Servo.h> 
 
 Servo myservo;
@@ -20,14 +20,12 @@ Servo myservo;
 #endif
 #define DOWN 20
 
-#define SERVO_PIN 0
-
 static int oldPos = 0;
 
 void setupServo() 
 {
 #ifndef SERIAL_DEBUG  
-  myservo.attach(SERVO_PIN);  // attaches the servo on pin 9 to the servo object 
+  myservo.attach(SERVO_PIN);  
   movePen(false);  
 #endif  
 }
