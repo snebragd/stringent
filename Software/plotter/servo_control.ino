@@ -1,33 +1,19 @@
 #include "MachineDefs.h"
 
-#ifndef SERIAL_DEBUG  
 #include "MachineDefs.h"
-#include <Servo.h> 
-
+#include <Servo.h>  
 Servo myservo;
-
-#endif  
 
 //disable to preserve space
 #define USE_SMOOTH_SERVO
 //#define USE_LINEAR_SERVO
 
-
-#if defined PLOTTER_HARWARE_1
-#define UP 80
-#else
-#define UP 110
-#endif
-#define DOWN 20
-
 static int oldPos = 0;
 
 void setupServo() 
 {
-#ifndef SERIAL_DEBUG  
   myservo.attach(SERVO_PIN);  
   movePen(false);  
-#endif  
 }
 
 void makePenNoise()
@@ -43,8 +29,7 @@ void makePenNoise()
 
 void movePen(boolean down)
 {
-#ifndef SERIAL_DEBUG  
-  int pos = down ? DOWN : UP;
+  int pos = down ? PEN_DOWN : PEN_UP;
   if(pos != oldPos) {
 
 #ifdef USE_SMOOTH_SERVO    
@@ -70,6 +55,5 @@ void movePen(boolean down)
     oldPos = pos;
 #endif //USE_SMOOTH_SERVO
   }
-#endif
 }
 

@@ -1,5 +1,5 @@
 #include "MachineDefs.h"
-
+ 
 //circumference of spool
 #define spoolCirc 94.2 
 
@@ -11,9 +11,6 @@
 
 //longest allowed line segment before splitting
 #define maxSegmentLength 10 
-
-//using serial debug will interfere with IR and Servo that are using pin 0 and 1 (TX/RX)
-//#define SERIAL_DEBUG
 
 #define EEPROM_LEFT_ADDR 0
 #define EEPROM_RIGHT_ADDR 4
@@ -53,7 +50,7 @@ static int currentSubSegment = 0;
 void storePositionInEEPROM();
 
 void setup()
-{
+{  
 #ifdef USE_DATA_FROM_DISK
   //store constant values into mock eeprom, wait 1sec first to allow storage
   delayMicroseconds(1000000);  
@@ -65,7 +62,7 @@ void setup()
 #ifdef SERIAL_DEBUG
   //Initialize serial and wait for port to open:
     Serial.begin(9600); 
-//    Serial.println("Yo! debug at your service!");
+    SER_PRINTLN("Setup");
 #endif
   
   //initialize IR  
@@ -96,17 +93,14 @@ void setup()
 #ifdef SERIAL_DEBUG
   Serial.print("Disparity=");
   Serial.println(disparity);
-  Serial.print("CurrentLeft=");
-  Serial.println(currentLeftSteps);
-  Serial.print("CurrentRight=");
-  Serial.println(currentRightSteps);
+#endif
 
+#ifdef NO_REMOTE
    //fake start a print since we dont have IR control
    printSize = 1;
    program = 1; //start print
    currentPlot = 4; 
-#endif
-  
+#endif  
 }
 
 unsigned long lastEEPromStore = 0;
@@ -115,6 +109,9 @@ void storePositionInEEPROM() {
   unsigned long now = micros();
   //dissallow storing to eeprom more than once a second (avoid repeated ir keystrokes)
   if((lastEEPromStore+1000000) <= now) {
+
+    SER_PRINTLN("EEPROM: Store");
+
     lastEEPromStore = now;
     eepromWriteLong(EEPROM_LEFT_ADDR, currentLeftSteps);  
     eepromWriteLong(EEPROM_RIGHT_ADDR, currentRightSteps);  
@@ -139,7 +136,7 @@ void setOrigo() {
 
 static int prevPen=0;
 
-unsigned long lastBatteryLog = 0;
+extern unsigned long lastBatteryLog;
 
 void loop()
 {        
@@ -186,6 +183,8 @@ void loop()
         movePen(false);
     
         step(0, 0, false); //flush out last line segment
+
+        SER_PRINTLN("Plot done");
         
         //store current position in eeprom 
         storePositionInEEPROM();
@@ -249,11 +248,9 @@ void loop()
             //no move, ignore
           }
           else {
-  #ifndef SERIAL_DEBUG
             movePen(prevPen); //adjust pen as necessary  
             step(dLeft, dRight, prevPen != nextPen); //move steppers
             prevPen=nextPen;
-  #endif          
           }
       }
     }      

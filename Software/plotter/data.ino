@@ -1,5 +1,5 @@
 #include "MachineDefs.h"
-
+ 
 #ifndef USE_DATA_FROM_DISK
 
 #include <avr/pgmspace.h>
@@ -11,8 +11,6 @@
 bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen);
 bool getSvgData(int plotNo, int point, float *x, float* y, int* pen);
 bool getMemoryData(int plotNo, int point, int *x, int* y, int* pen);
-
-static File batteryFile;
 
 static int currentlySelectedPlot = -1;
 
@@ -74,6 +72,11 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
   }
 }
 
+#ifdef HAS_BATTERY_MEASUREMENT
+
+static File batteryFile;
+unsigned long lastBatteryLog = 0;
+
 static float batteryAverage=800; //just start with something above threshold
 #define BATTERY_THRESHOLD 650
 
@@ -94,6 +97,8 @@ void logBattery(int secsSinceStart) {
 #endif
 }
 
+#endif //HAS_BATTERY_MEASUREMENT
+
 void setupData()
 {
   // make sure that the default chip select pin is set to
@@ -102,13 +107,15 @@ void setupData()
 
   // see if the card is present and can be initialized:
   if (!SD.begin(10)) {
-//    Serial.println("Card failed, or not present");
+    SER_PRINTLN("SD fail");
     // don't do anything more:
     return;
   }  
+#ifdef HAS_BATTERY_MEASUREMENT  
 #ifndef USE_DATA_FROM_DISK
   batteryFile = SD.open("battery.log", FILE_WRITE);;      
 #endif
+#endif //HAS_BATTERY_MEASUREMENT
 }
 
 // **************** Svg path ***************************
@@ -141,16 +148,12 @@ seekToPathStart(bool rewindFile) {
     svgFile.seek(0);  //rewind (we could have paused)
   }
     if(!seekTo((char*)"<path")) {
-#ifdef SERIAL_DEBUG
-      Serial.println("No <path> tag");    
-#endif
+//      SER_PRINTLN("No <path> tag");    
       return false;
     }
     
     if(!seekTo((char*)" d=\"")) {
-#ifdef SERIAL_DEBUG
-      Serial.println("No d=\" in path tag");    
-#endif
+      SER_PRINTLN("No d=\" in path");    
       return false;
     }
   return true;  
@@ -281,9 +284,7 @@ getNextPathSegment(float *x, float *y, int *line, bool first)
 }
 
 static float min_x = 100000000.0;
-static float max_x = -100000000.0;
 static float min_y = 100000000.0;
-static float max_y = -100000000.0;
 static float scaleFactor = 1.0;
 
 static float lastX,lastY;
@@ -294,19 +295,16 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
   if(point == 0) {
     long pathPosition;
     long segments = 0;
-   
+    float max_x, max_y;
+    
     lastReadPoint = -1;
     
     //first read, get dimensions
     if(!seekToPathStart(true)) {      
-#ifdef SERIAL_DEBUG
-      Serial.println("No path found in svg file!");    
-#endif
+      SER_PRINTLN("No path found!");    
       return false;
     }    
-#ifdef SERIAL_DEBUG
-      Serial.println("Woho found <path> in svg file!");    
-#endif
+    SER_PRINTLN("Found <path>!");    
     pathPosition = svgFile.position();
 
     min_y = min_x = 100000000.0;
@@ -324,25 +322,17 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
         break;
       }
     }
-//    scaleFactor = (disparity*0.3) / max( (max_x-min_x) , (max_y-min_y) );
     scaleFactor = (disparity*0.4) / (max_x-min_x); //fill 40% of disparity as default
     
-#ifdef SERIAL_DEBUG
-      Serial.print("Segments=");    
-      Serial.println(segments);    
+    SER_PRINT("Segments=");    
+    SER_PRINTLN(segments);    
 
-      Serial.print("Scale factor=");    
-      Serial.println(scaleFactor);    
-
-      Serial.print("Max_x=");    
-      Serial.println(max_x);    
-
-#endif  
+    SER_PRINT("Scale=");    
+    SER_PRINTLN(scaleFactor);    
 
 #ifdef USE_MOCKED_STEPPERS
       fprintf(stderr,"segments=%3ld scale=%2.2f x=[%2.2f , %2.2f] y=[%2.2f , %2.2f] disparity=%ld\n", segments, scaleFactor, min_x,max_x, min_y, max_y, disparity);
 #endif        
-
 
     svgFile.seek(pathPosition);    
   }
@@ -374,10 +364,8 @@ bool getSvgData(int plotNo, int point, float *x, float* y, int* pen)
     *y = lastY;    
     *pen = lastPen;    
   }
-#ifdef SERIAL_DEBUG
-//      Serial.print(*pen ? "L " : "M ");    
-//      Serial.println(point);    
-#endif        
+
+  SER_PRINT(*pen ? "L " : "M ");    
 
   return true;
 }

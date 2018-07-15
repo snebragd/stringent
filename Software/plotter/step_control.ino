@@ -1,5 +1,5 @@
 #include "MachineDefs.h"
-
+ 
 //current stepper position in step sequence (not global position)
 long currLeftPos = 0;
 long currRightPos = 0;
@@ -38,7 +38,7 @@ void setupStep()
     for(int pin=0 ; pin<4 ; pin++) {
       pinMode(leftPins[pin], OUTPUT);
       pinMode(rightPins[pin], OUTPUT);
-    }
+    } 
 }
 
 static float prevDir;

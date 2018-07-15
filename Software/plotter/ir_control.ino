@@ -1,6 +1,6 @@
 #include <IRremote.h>
 #include "MachineDefs.h"
-
+ 
 IRrecv irrecv(RECV_PIN);
 decode_results results;  
 
@@ -66,12 +66,11 @@ void setupIR()
 void readIR()
 {
   float lDist;
+  bool fail = false;
   
-  if (irrecv.decode(&results)) {
-//      Serial.println(results.value, HEX);
-  
+  if (irrecv.decode(&results)) {         
     switch(results.value) {
-#ifndef SERIAL_DEBUG      
+#ifndef NO_REMOTE      
        case 0xF50A3DC2:  //power
          storePositionInEEPROM();
                
@@ -102,8 +101,11 @@ void readIR()
 
          lDist = currentLeftSteps/stepsPerMM;
          disparity = (long)sqrt(lDist*lDist+200L*200L);
+
+         SER_PRINT("Cal: Disp=");
+         SER_PRINTLN(disparity);
+
          break;   
-#endif         
        case CODE_DISABLE_CONT_DRIVE: 
          continousManualDrive = false;
          break;
@@ -113,6 +115,7 @@ void readIR()
        case CODE_STOP:  
          stopPressed = true;
 #if  CODE_DISABLE_CONT_DRIVE == 0xBADC0DE
+        //just disable continous drive when pressing stop. Re-enable with CODE_ENABLE_CONT_DRIVE again
          continousManualDrive = false;
 #endif
          break;
@@ -129,8 +132,17 @@ void readIR()
        case CODE_6: program = 1; currentPlot = 6; break;
        case CODE_7: program = 1; currentPlot = 7; break;
        case CODE_8: program = 1; currentPlot = 8; break;
-       case CODE_9: program = 1; currentPlot = 9; break;
+       case CODE_9: program = 1; currentPlot = 9; break;       
+       default:
+          fail=true;           
+#endif //NO_REMOTE         
     }   
+    if(fail) {
+       SER_PRINTLN("???");
+    }
+    else {
+       SER_PRINTLN2(results.value, HEX);      
+    }
     irrecv.resume(); // Receive the next value
   }  
 }
