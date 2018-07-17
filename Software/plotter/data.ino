@@ -50,13 +50,13 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
     svgFile = SD.open(svgName, FILE_READ);
     if(svgFile) {
         //found svg
-#ifdef SERIAL_DEBUG
-        Serial.println("found svg file"); 
-#endif
+      SER_PRINT("Found: ");      
+      SER_PRINTLN(svgName);      
     }
     else {
-      //failed to find file make some noise      
-      makePenNoise();      
+      makePenNoise();
+      SER_PRINT("No such file: ");      
+      SER_PRINTLN(svgName);      
       return false;
     }
 
