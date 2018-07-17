@@ -48,20 +48,19 @@ static bool accStop=true; //did we break the last segment
 
 #define ACC_DIR_THRESHOLD (PI/4)
 #define DIR_CHANGE_WAIT 1000
-/*
- * this code should really be in use to avoid the duplication below. there was some bug, there was no time, so here it is commented out...
+
 void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 {
   if(*fraction >= 1.0) { //step
      *fraction -= 1.0;        
 
      if(*steps > 0) {
-       *steps--;
-       *currPos++;
+       (*steps)--;
+       (*currPos)++;
      }
      else if(*steps < 0) {
-       *steps++;
-       *currPos--;
+       (*steps)++;
+       (*currPos)--;
      }
      byte mask = stepSequence[*currPos & 0x7];
 
@@ -72,16 +71,16 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
      lastStepChange = micros();
    }
 }
-*/
+
 void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
 {
 #ifdef USE_MOCKED_STEPPERS
  //   printf("step %3ld %3ld\n", nextLeftSteps, nextRightSteps);
 #endif
   
-  
   accStop = forceStop;
-  
+
+  //number of steps for this line segment
   long numSteps = max(abs(leftSteps), abs(rightSteps));
 
   float nextDir = atan2(nextLeftSteps,nextRightSteps);  
@@ -89,79 +88,40 @@ void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
   if(diff > PI) {
     diff = 2*PI-diff;
   }
-  
+
+  //check if we need to brake towards end of line segment
   if(diff > ACC_DIR_THRESHOLD) {
     //sharp turn, break
     accStop = true;
-//    for(int i=0; i<DIR_CHANGE_WAIT ; i++) {
-//      delayMicroseconds(1000); 
-//    }
   } 
   prevDir = nextDir;  
     
   if(numSteps > 0) {
+     //current logic is to step the fastest moving stepper every iteration of the loop while stepping the slower moving one as the "fraction" is accumulated to more than 1.
+     //A better logic calculating timings and running the steppers more asynch from one another might result in a more efficient drive of the slow steppper? In some distant future...
      float leftPerStep = abs(leftSteps) / (float)numSteps;
      float rightPerStep = abs(rightSteps) / (float)numSteps;     
      float leftFraction = 0;
      float rightFraction = 0;
     
      while(abs(leftSteps) > 0 || abs(rightSteps) > 0) {
-
-       leftFraction += leftPerStep;
-//       stepWithFraction(&leftFraction, &leftSteps, &currLeftPos, leftPins);
-
-       if(leftFraction >= 1.0) { //step left
-         leftFraction -= 1.0;        
-
-         if(leftSteps > 0) {
-           leftSteps--;
-           currLeftPos++;
-         }
-         else if(leftSteps < 0) {
-           leftSteps++;
-           currLeftPos--;
-         }
-         byte mask = stepSequence[currLeftPos & 0x7];
-
-         for(int bit=0 ; bit<4 ; bit++) {        
-           digitalWrite(leftPins[bit], mask & (B1000 >> bit));
-         }
-         
-         lastStepChange = micros();
-       } 
-       rightFraction += rightPerStep;
-//       stepWithFraction(&rightFraction, &rightSteps, &currRightPos, rightPins);
+        leftFraction += leftPerStep;
+        stepWithFraction(&leftFraction, &leftSteps, &currLeftPos, leftPins);
+        
+        rightFraction += rightPerStep;
+        stepWithFraction(&rightFraction, &rightSteps, &currRightPos, rightPins);       
        
-       if(rightFraction >= 1.0) { //step right
-         rightFraction -= 1.0;        
-         if(rightSteps > 0) {
-           rightSteps--;
-           currRightPos++;
-         }
-         else if(rightSteps < 0) {
-           rightSteps++;
-           currRightPos--;
-         }
-         byte mask = stepSequence[currRightPos & 0x7];
-         
-         for(int bit=0 ; bit<4 ; bit++) {        
-           digitalWrite(rightPins[bit], mask & (B1000 >> bit));
-         }
-         
-         lastStepChange = micros();
-       }  
-     
-      numSteps = max(abs(leftSteps), abs(rightSteps));     
-      if(accStop && currentSpeed >= (numSteps*D_SPEED + MIN_SPEED)) {    
-        //start breaking
-        currentSpeed = max(currentSpeed-(currentSpeed/numSteps), MIN_SPEED);
-      }      
-      else {
-        currentSpeed = min(currentSpeed+D_SPEED, MAX_SPEED);
-      }  
-      
-       delayMicroseconds(1.0 / currentSpeed); 
-     }
+        numSteps = max(abs(leftSteps), abs(rightSteps));     
+        if(accStop && currentSpeed >= (numSteps*D_SPEED + MIN_SPEED)) {    
+          //start breaking
+          currentSpeed = max(currentSpeed-(currentSpeed/numSteps), MIN_SPEED);
+        }      
+        else {
+          currentSpeed = min(currentSpeed+D_SPEED, MAX_SPEED);
+        }  
+        
+        delayMicroseconds(1.0 / currentSpeed); 
+      }
    }  
    if((micros()-lastStepChange) > DISABLE_TIMEOUT) {     
      //disable steppers
