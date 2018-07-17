@@ -138,11 +138,10 @@ void readIR()
 #endif //NO_REMOTE         
     }   
     if(fail) {
-       SER_PRINTLN("???");
+       SER_PRINT("???: ");
     }
-    else {
-       SER_PRINTLN2(results.value, HEX);      
-    }
+    SER_PRINTLN2(results.value, HEX);      
+    
     irrecv.resume(); // Receive the next value
   }  
 }
