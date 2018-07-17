@@ -255,4 +255,7 @@ void loop()
       }
     }      
   } 
+
+  //check and disable steppers if idle
+  checkDisableSteppers();
 }

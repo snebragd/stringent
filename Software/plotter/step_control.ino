@@ -123,6 +123,12 @@ void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
         delayMicroseconds(1.0 / currentSpeed); 
       }
    }  
+   
+   leftSteps = nextLeftSteps;
+   rightSteps = nextRightSteps;
+}
+
+void checkDisableSteppers() { 
    if((micros()-lastStepChange) > DISABLE_TIMEOUT) {     
      //disable steppers
      for(int pin=0 ; pin<4 ; pin++) {
@@ -130,8 +136,4 @@ void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
        digitalWrite(rightPins[pin], 0); 
      }
    }
-   
-   leftSteps = nextLeftSteps;
-   rightSteps = nextRightSteps;
 }
-
