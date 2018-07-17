@@ -180,7 +180,7 @@ void loop()
         resumePlot = false; //make sure to not end up in loop if plot cannot be resumed due to missing file or corrupt data        
 
         //stop with pen up        
-        movePen(false);
+        movePen(false, false);
     
         step(0, 0, false); //flush out last line segment
 
@@ -248,7 +248,7 @@ void loop()
             //no move, ignore
           }
           else {
-            movePen(prevPen); //adjust pen as necessary  
+            movePen(prevPen, false); //adjust pen as necessary  
             step(dLeft, dRight, prevPen != nextPen); //move steppers
             prevPen=nextPen;
           }
