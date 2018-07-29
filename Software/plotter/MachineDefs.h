@@ -24,12 +24,12 @@
 #define SERVO_PIN A5
 
 //servo values for pen up/down
-#define PEN_UP 110
-#define PEN_DOWN 20
+#define PEN_UP 80
+#define PEN_DOWN 60
 
 
 //IR-receiver pin
-#define RECV_PIN  A4
+#define RECV_PIN  A0
  
 //stepper motor pins
 #define LEFT_STEP_PIN_1 6
