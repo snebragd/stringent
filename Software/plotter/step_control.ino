@@ -5,12 +5,13 @@ long currLeftPos = 0;
 long currRightPos = 0;
 
 byte stepSequence[8] = {B1000, B1100, B0100, B0110, B0010, B0011, B0001, B1001};
+//byte stepSequence[8] = {B1001, B1100, B1100, B0110, B0110, B0011, B0011, B1001};
 
 byte leftPins[4]  = {LEFT_STEP_PIN_1,  LEFT_STEP_PIN_2,  LEFT_STEP_PIN_3,  LEFT_STEP_PIN_4};
 byte rightPins[4] = {RIGHT_STEP_PIN_1, RIGHT_STEP_PIN_2, RIGHT_STEP_PIN_3, RIGHT_STEP_PIN_4};
 
 //shortest reliable delay seems to be around 600 (1220 used previously)
-#define MIN_DELAY 600
+#define MIN_DELAY 900
 #define MAX_DELAY 20000
 
 //Allowed speed in steps/us
