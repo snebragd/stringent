@@ -54,7 +54,7 @@ bool getDataInternal(int plotNo, int point, float *x, float* y, int* pen)
       SER_PRINTLN(svgName);      
     }
     else {
-      makePenNoise();
+      makePenNoise(3);
       SER_PRINT("No such file: ");      
       SER_PRINTLN(svgName);      
       return false;

@@ -94,13 +94,17 @@ void readIR()
          manualRight = 1;
          break;
        case CODE_LEFT_CALIBRATION:  //prev - calibrate 200 mm from left
-         currentLeftSteps = 200*stepsPerMM;         
+         currentLeftSteps = 200*stepsPerMM;
+         testPen();         
          break;
        case CODE_RIGHT_CALIBRATION:  //next - calibrate 200 mm from right
          currentRightSteps = 200*stepsPerMM;              
 
          lDist = currentLeftSteps/stepsPerMM;
-         disparity = (long)sqrt(lDist*lDist+200L*200L);
+         disparity = (long)sqrt(lDist*lDist-200L*200L);
+
+         SER_PRINT("Cal: lDist)");
+         SER_PRINTLN(lDist);
 
          SER_PRINT("Cal: Disp=");
          SER_PRINTLN(disparity);
@@ -139,6 +143,9 @@ void readIR()
     }   
     if(fail) {
        SER_PRINT("???: ");
+    }
+    else {
+       makePenNoise(1);
     }
     SER_PRINTLN2(results.value, HEX);      
     
