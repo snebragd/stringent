@@ -27,14 +27,15 @@ pen_radius=10;
 stepper_x=27;
 stepper_y=-(plate_h/2-15);
 
-driver_x=34;
+driver_x=44;
 driver_y=-15;
 
 battery_x=0;
 battery_y=0;
 
-servo_x=0;
-servo_y=-87;
+servo_x=-18;
+servo_y=-10;
+servo_z=20;
 
 y_cut=53.5;
 
@@ -97,7 +98,7 @@ if(draw_components) {
 	}	
 
 	//servo
-	translate([servo_x, servo_y, -12/2-plate_t/2]) servo();
+	translate([servo_x, servo_y, servo_z]) rotate([-pen_angle+90,0,0]) rotate([0,90,0]) servo();
 
 	//pen
 	color("Red", alpha=0.5) {	
@@ -141,20 +142,25 @@ difference() {
 }
 
 //pen guide
-intersection() {
-	translate([0,pen_y,0]) rotate([pen_angle,0,0]) {
-		difference() {
-			union() {
-				translate([0,0,-50]) cylinder(r1=pen_radius+2, r2=pen_radius+1, h=120);
-				translate([-2,20,0]) rotate([-pen_angle,0,0]) cube([4,20,40]);
-			}
-			translate([0,0,-50]) cylinder(r=pen_radius, h=250);
-			translate([0,0,150]) rotate([-25,0,0]) cube(center=true,[100,100,1000]);	
-			translate([-7.5,5,20]) cube(center=true,[3,10,6]	);
-			translate([7.5,5,20]) cube(center=true,[3,10,6]	);
-		}
-	}
-	translate([-100,-100,0]) cube(200,200,200);
+difference() {
+    intersection() {
+        translate([0,pen_y,0]) rotate([pen_angle,0,0]) {
+            difference() {
+                union() {
+                    translate([0,0,-50]) cylinder(r1=pen_radius+2, r2=pen_radius+1, h=120);
+                    translate([-2,20,0]) rotate([-pen_angle,0,0]) cube([4,20,40]);
+                    translate([-25.5,8,0]) rotate([-pen_angle,0,0]) cube([15,30,40]);
+                    
+                }
+                translate([0,0,-50]) cylinder(r=pen_radius, h=250);
+                translate([0,0,150]) rotate([-25,0,0]) cube(center=true,[100,100,1000]);	
+//                translate([-7.5,5,20]) cube(center=true,[3,10,6]	);
+//                translate([7.5,5,20]) cube(center=true,[3,10,6]	);            
+            }        
+        }
+        translate([-100,-100,0]) cube(200,200,200);        
+    }
+    translate([servo_x, servo_y, servo_z]) rotate([-pen_angle+90,0,0]) rotate([0,90,0]) servo(cutout=1);
 }
 
 //arduino distances
@@ -187,11 +193,11 @@ module stepper_driver_holes(left) {
 	dy=26;
 	union() {        
         if(left) {
-            translate([-dx/2,dy/2,-5]) cylinder(r=1.7, h=11);
+            translate([-dx/2,-dy/2,-5]) cylinder(r=1.7, h=11);
             translate([dx/2,-dy/2,-5]) cylinder(r=1.7, h=11);
         }
         else {
-            translate([-dx/2,-dy/2,-5]) cylinder(r=1.7, h=11);
+            translate([-dx/2,dy/2,-5]) cylinder(r=1.7, h=11);
             translate([dx/2,dy/2,-5]) cylinder(r=1.7, h=11);
         }
 	}
@@ -220,11 +226,11 @@ module stepper_driver_pins(left) {
 	dy=26;
 	union() {
         if(left) {
-            translate([-dx/2,dy/2,0]) driver_pin();
+            translate([-dx/2,-dy/2,0]) driver_pin();
             translate([dx/2,-dy/2,0]) driver_pin();
         }
         else {
-            translate([-dx/2,-dy/2,0]) driver_pin();
+            translate([-dx/2,dy/2,0]) driver_pin();
             translate([dx/2,dy/2,0]) driver_pin();
         }
 	}
@@ -306,20 +312,28 @@ module battery() {
 	}
 }
 
-module servo() {
+module servo(cutout=0) {
 
-	color("Black", alpha=0.5) {	
-		cube(center=true, [23,21,12]);		
-		translate([0,21/2-3,0]) cube(center=true, [32,1,12]);		
-		translate([23/2-11.5/2,21/2,0]) rotate([-90,0,0]) {
-			union() {
-				cylinder(r=11.5/2, h=5);
-				cylinder(r=2, h=10);
-				translate([-3,-3, 9]) cube([6,20,1]);
-			}
-		}
-	}
-	color("White", alpla=0.5) {
+    if(cutout) {
+        cube(center=true, [23+1,21+1,12+1]);		
+        translate([0,21/2-3+5,0]) cube(center=true, [32+1,1+10,12+1]);		
+        translate([14,20,0]) rotate([90,0,0]) cylinder(r=0.8, h=20);		 
+        translate([14-28,20,0]) rotate([90,0,0]) cylinder(r=0.8, h=20);		 
+    }
+    else {
+        color("Black", alpha=0.5) {	
+            cube(center=true, [23,21,12]);		
+            translate([0,21/2-3,0]) cube(center=true, [32,1,12]);		
+            translate([23/2-11.5/2,21/2,0]) rotate([-90,180,0]) {
+                union() {
+                    cylinder(r=11.5/2, h=5);
+                    cylinder(r=2, h=10);
+                    translate([-3,-3, 9]) cube([6,20,1]);
+                }
+            }
+        }
+        color("White", alpla=0.5) {
 
-	}
+        }
+    }    
 }
