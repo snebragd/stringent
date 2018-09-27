@@ -1,5 +1,6 @@
 
 #define SERIAL_DEBUG
+//#define NO_REMOTE
 
 #ifdef SERIAL_DEBUG
 #define SER_PRINT(X) Serial.print((X))
@@ -18,10 +19,11 @@
  
 //which remote control to use
 //#define PIONEER_DVD_REMOTE
-#define NONAME_WHITE_REMOTE
+//#define NONAME_WHITE_REMOTE
+#define NODEMCU_WEBSERVER
 
 //servo pin
-#define SERVO_PIN A5
+#define SERVO_PIN D0
 
 //servo values for pen up/down
 #define PEN_UP 80
@@ -29,15 +31,14 @@
 
 
 //IR-receiver pin
-#define RECV_PIN  A0
+//#define RECV_PIN  A0
  
 //stepper motor pins
-#define LEFT_STEP_PIN_1 6
-#define LEFT_STEP_PIN_2 7
-#define LEFT_STEP_PIN_3 8
-#define LEFT_STEP_PIN_4 9
-#define RIGHT_STEP_PIN_1 2
-#define RIGHT_STEP_PIN_2 3
-#define RIGHT_STEP_PIN_3 4
-#define RIGHT_STEP_PIN_4 5
-
+#define LEFT_STEP_PIN_1  D5 // 6
+#define LEFT_STEP_PIN_2  D6 // 7
+#define LEFT_STEP_PIN_3 D7 // 8
+#define LEFT_STEP_PIN_4 D8 // 9
+#define RIGHT_STEP_PIN_1 D1 // 2
+#define RIGHT_STEP_PIN_2 D2 // 3
+#define RIGHT_STEP_PIN_3 D3 // 4
+#define RIGHT_STEP_PIN_4 D4 // 5
