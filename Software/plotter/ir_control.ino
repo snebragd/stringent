@@ -250,7 +250,7 @@ void readIR()
   client.println("<!DOCTYPE HTML>");
   client.println("<html> \
   <head> \
-    <title>Plotter Controls - Start/Stop One Stepper</title> \
+    <title>Plotter Controls</title> \
     <style> \
       body{ \
         font-family:Helvetical, Arial, Sans-Serif; \
