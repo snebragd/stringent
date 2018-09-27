@@ -75,6 +75,7 @@ void stepWithFraction(float *fraction, long *steps, long *currPos, byte *pins)
 
 void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
 {
+  
 #ifdef USE_MOCKED_STEPPERS
  //   printf("step %3ld %3ld\n", nextLeftSteps, nextRightSteps);
 #endif
@@ -96,7 +97,7 @@ void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
     accStop = true;
   } 
   prevDir = nextDir;  
-    
+  
   if(numSteps > 0) {
      //current logic is to step the fastest moving stepper every iteration of the loop while stepping the slower moving one as the "fraction" is accumulated to more than 1.
      //A better logic calculating timings and running the steppers more asynch from one another might result in a more efficient drive of the slow steppper? In some distant future...
@@ -115,18 +116,22 @@ void step(long nextLeftSteps, long nextRightSteps, boolean forceStop)
         numSteps = max(abs(leftSteps), abs(rightSteps));     
         if(accStop && currentSpeed >= (numSteps*D_SPEED + MIN_SPEED)) {    
           //start breaking
-          currentSpeed = max(currentSpeed-(currentSpeed/numSteps), MIN_SPEED);
+          currentSpeed = max((double)currentSpeed-(currentSpeed/numSteps), MIN_SPEED);
         }      
         else {
           currentSpeed = min(currentSpeed+D_SPEED, MAX_SPEED);
         }  
         
         delayMicroseconds(1.0 / currentSpeed); 
+        yield();
       }
    }  
+
    
    leftSteps = nextLeftSteps;
    rightSteps = nextRightSteps;
+
+   
 }
 
 void checkDisableSteppers() { 
