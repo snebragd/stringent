@@ -18,6 +18,9 @@ void setupServo()
 
 void makePenNoise(int n)
 {
+  #ifdef SERIAL_DEBUG
+  Serial.println("PEN NOISE");
+  #endif
   int p = oldPos;  
   for(int i=0; i<n; i++) {
     myservo.write((int)p+5);    
@@ -29,6 +32,8 @@ void makePenNoise(int n)
 
 void testPen()
 {
+  
+  Serial.println("PEN TEST");
     movePen(true, false);
     delay(1000); 
     movePen(false, false);
@@ -36,8 +41,12 @@ void testPen()
 
 void movePen(boolean down, boolean fast)
 { 
+  
+  Serial.print("PEN MOVE");
   int pos = down ? PEN_DOWN : PEN_UP;
+
   if(pos != oldPos) {
+    Serial.println(pos);
 
 #ifdef USE_SMOOTH_SERVO    
     if(fast || !down) {
@@ -58,4 +67,3 @@ void movePen(boolean down, boolean fast)
     oldPos = pos;
   }
 }
-
